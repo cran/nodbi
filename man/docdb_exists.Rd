@@ -34,11 +34,6 @@ docout <- docdb_create(src, key = "mtcars2", value = mtcars)
 docdb_exists(src, "mtcars2")
 docdb_exists(src, "asdfadf")
 
-# etcd
-# src <- src_etcd()
-# docdb_exists(src, "/hello")
-# docdb_exists(src, "/asdfadsf")
-
 # Elasticsearch
 (src <- src_elastic())
 if (docdb_exists(src, "iris")) docdb_delete(src, "iris")
@@ -52,5 +47,17 @@ docdb_exists(src, "adfadf")
 docdb_create(src, "mtcars", mtcars)
 docdb_exists(src, "mtcars")
 docdb_exists(src, "asdfasf")
+
+# MongoDB
+src <- src_mongo(collection = "mtcars")
+docdb_create(src, key = "mtcars", value = mtcars)
+docdb_exists(src, "mtcars")
+
+# SQLite
+(src <- src_sqlite())
+docdb_create(src, "mtcars", mtcars)
+docdb_exists(src, "mtcars")
+docdb_exists(src, "yellowcheese")
 }
+
 }

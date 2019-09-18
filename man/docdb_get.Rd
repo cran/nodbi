@@ -9,7 +9,7 @@ docdb_get(src, key, limit = NULL, ...)
 \arguments{
 \item{src}{source object, result of call to src}
 
-\item{key}{(chartacter) A key. ignored for mongo}
+\item{key}{(character) A key (collection for mongo)}
 
 \item{limit}{(integer) number of records/rows to return. by default
 not passed, so you get all results. Only works for CouchDB,
@@ -18,10 +18,10 @@ Elasticsearch and MongoDB; ignored for others}
 \item{...}{passed on to functions:
 \itemize{
 \item CouchDB: passed to \code{\link[sofa:db_alldocs]{sofa::db_alldocs()}}
-\item etcd: passed to the \code{$key()} method
 \item Elasticsearch: passed to \code{\link[elastic:Search]{elastic::Search()}}
 \item Redis: ignored
 \item MongoDB: ignored
+\item SQLite: ignored
 }}
 }
 \description{
@@ -39,15 +39,12 @@ docout <- docdb_create(src, key = "mtcars2", value = mtcars)
 docdb_get(src, "mtcars2")
 docdb_get(src, "mtcars2", limit = 5)
 
-# etcd
-# src <- src_etcd()
-# docdb_create(src, "/hello", mtcars)
-# docdb_get(src, "/hello")
-
 # Elasticsearch
 src <- src_elastic()
+if (docdb_exists(src, "iris")) docdb_delete(src, "iris")
 docdb_create(src, "iris", iris)
 docdb_get(src, "iris")
+if (docdb_exists(src, "d2")) docdb_delete(src, "d2")
 docdb_create(src, "d2", diamonds)
 docdb_get(src, "d2", limit = 1010)
 
@@ -57,9 +54,15 @@ docdb_create(src, "mtcars", mtcars)
 docdb_get(src, "mtcars")
 
 # Mongo
-src <- src_mongo()
+src <- src_mongo(collection = "mtcars")
 docdb_create(src, "mtcars", mtcars)
 docdb_get(src, "mtcars")
 docdb_get(src, "mtcars", limit = 4)
+
+# SQLite
+src <- src_sqlite()
+docdb_create(src, "mtcars", mtcars)
+docdb_get(src, "mtcars")
+docdb_get(src, "mtcars", limit = 4L)
 }
 }

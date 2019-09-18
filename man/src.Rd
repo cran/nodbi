@@ -12,17 +12,18 @@ of the database backends. Each has their own unique set of parameters.
 \itemize{
 \item MongoDB - \code{\link[=src_mongo]{src_mongo()}}
 \item CouchDB - \code{\link[=src_couchdb]{src_couchdb()}}
-\item etcd - \code{\link[=src_etcd]{src_etcd()}}
 \item Elasticsearch - \code{\link[=src_elastic]{src_elastic()}}
 \item Redis - \code{\link[=src_redis]{src_redis()}}
+\item SQLite - \code{\link[=src_sqlite]{src_sqlite()}}
 }
 
 Documentation details for each database:
 \itemize{
 \item MongoDB - \url{https://docs.mongodb.com/}
 \item CouchDB - \url{http://docs.couchdb.org/}
-\item etcd - \url{https://coreos.com/etcd/docs/latest/getting-started-with-etcd.html}
-\item Elasticsearch - \url{https://www.elastic.co/guide/en/elasticsearch/reference/current}
+\item Elasticsearch -
+\url{https://www.elastic.co/guide/en/elasticsearch/reference/current}
 \item Redis - \url{https://redis.io/documentation}
+\item SQLite/json1 - \url{https://www.sqlite.org/json1.html}
 }
 }

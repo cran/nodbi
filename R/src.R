@@ -6,15 +6,16 @@
 #'
 #' - MongoDB - [src_mongo()]
 #' - CouchDB - [src_couchdb()]
-#' - etcd - [src_etcd()]
 #' - Elasticsearch - [src_elastic()]
 #' - Redis - [src_redis()]
+#' - SQLite - [src_sqlite()]
 #'
 #' Documentation details for each database:
 #'
 #' - MongoDB - <https://docs.mongodb.com/>
 #' - CouchDB - <http://docs.couchdb.org/>
-#' - etcd - <https://coreos.com/etcd/docs/latest/getting-started-with-etcd.html>
-#' - Elasticsearch - <https://www.elastic.co/guide/en/elasticsearch/reference/current>
+#' - Elasticsearch -
+#'  <https://www.elastic.co/guide/en/elasticsearch/reference/current>
 #' - Redis - <https://redis.io/documentation>
+#' - SQLite/json1 - <https://www.sqlite.org/json1.html>
 NULL

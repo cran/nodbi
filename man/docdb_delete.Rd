@@ -10,7 +10,7 @@ docdb_delete(src, key, ...)
 \item{src}{source object, result of call to src, an
 object of class \code{docdb_src}}
 
-\item{key}{(chartacter) A key. ignored for mongo}
+\item{key}{(character) A key (collection for mongo)}
 
 \item{...}{Ignored for now}
 }
@@ -29,14 +29,9 @@ docdb_create(src, "mtcars", mtcars)
 docdb_get(src, "mtcars")
 docdb_delete(src, "mtcars")
 
-# etcd
-# src <- src_etcd()
-# docdb_create(src, "/iris", iris)
-# docdb_get(src, "/iris")
-# docdb_delete(src, "/iris")
-
 # elasticsearch
 src <- src_elastic()
+if (docdb_exists(src, "iris")) docdb_delete(src, "iris")
 docdb_create(src, "iris", iris)
 docdb_get(src, "iris")
 docdb_delete(src, "iris")
@@ -48,9 +43,15 @@ docdb_get(src, "mtcars")
 docdb_delete(src, "mtcars")
 
 # mongo
-src <- src_mongo("stuff")
+src <- src_mongo(collection = "iris")
 docdb_create(src, "iris", iris)
 docdb_get(src, "iris")
-docdb_delete(src)
+docdb_delete(src, "iris")
+
+# SQLite
+src <- src_sqlite()
+docdb_create(src, "iris", iris)
+docdb_get(src, "iris")
+docdb_delete(src, "iris")
 }
 }
