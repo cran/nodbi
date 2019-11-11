@@ -47,6 +47,7 @@
 #' if (docdb_exists(src, "iris")) docdb_delete(src, "iris")
 #' docdb_create(src, "iris", iris)
 #' docdb_exists(src, "iris")
+#' Sys.sleep(2)
 #' docdb_query(src, "iris", query = "setosa")
 #' docdb_query(src, "iris", query = "1.5")
 #' docdb_query(src, "iris", query = "Petal.Width:1.5")
@@ -154,9 +155,10 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
   ## compose statement
   statement <-
     paste0(
-      # SELECT '{' || "
-      #        ' "gear": ' || json_extract(mtcars.json, '$.gear') || ', ' || 
-      #        ' "cyl": '  || json_extract(mtcars.json, '$.cyl')  || ', ' ||
+      # SELECT '{' || 
+      #        ' "gear":  ' || json_extract(mtcars.json, '$.gear') || ',  ' || 
+      #        ' "text": "' || json_extract(mtcars.json, '$.text') || '", ' ||
+      #        ' "array": ' || json_array(json_extract(mtcars.json, '$.array')) || ', ' ||
       #        ' "_id": "' || _id || '"}'
       # AS json
       "SELECT DISTINCT '{' || ",
@@ -164,11 +166,11 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
         unname(
           sapply(
             tmpfields, 
-            function(x) 
-              sprintf("' \"%s\": %s' || json_extract(%s.json, '$.%s') || '%s, ' ||",  
-                      x, jsonEscape(tmpstr, x), key,
-                      x, jsonEscape(tmpstr, x)
-              ))), 
+            function(x){
+              tmp <- jsonEscape(tmpstr, x)
+              sprintf("' \"%s\": %sjson_extract(%s.json, '$.%s')%s, ' ||",  
+                            x,  tmp[1],         key,       x, tmp[2])
+            })), 
         collapse = "\n")
       , " ' \"_id\": \"' || _id || '\"}'
         AS json ",
@@ -257,25 +259,28 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
   
   ## do query
   
-  # temporary file; note this cannot be 
-  # because it is needed to stream 
-  # the return value
-  dump <- tempfile()
+  # temporary file for streaming
+  tfname <- tempfile()
+  dump <- file(description = tfname,
+               encoding = "UTF-8")
+  
+  # register to remove file
+  # after used for streaming
+  on.exit(unlink(tfname))
   
   # get data, write to file in ndjson format
   cat(stats::na.omit(unlist(
     DBI::dbGetQuery(conn = src$con,
                     statement = statement, 
-                    n = n)
-  )
+                    n = n))
   ),
   sep = "\n", # ndjson
   file = dump)
   
-  # from jsonlite:
+  # from jsonlite documentation:
   # Because parsing huge JSON strings is difficult and inefficient, 
   # JSON streaming is done using lines of minified JSON records, a.k.a. ndjson. 
-  jsonlite::stream_in(file(dump), verbose = FALSE)
+  jsonlite::stream_in(dump, verbose = FALSE)
 
 }
 
@@ -291,21 +296,31 @@ jsonEscape <- function(x, y) {
   #     with columns fullkey and type as per json_tree()
   # - y is the name of a variable / column of x that is of interest
 
-  # default
-  o <- ""
-  
-  # format like fullkey
+  # format field like fullkeys
   y <- paste0("$.", y)
+  tmp <- unique(x$type[x$fullkey == y])
   
+  # sprintf("' \"%s\": %sjson_extract(%s.json, '$.%s')%s , ' ||",
+  #              o[1]---|                     o[2] ---|
+
   # no escaping for:
-  # - lists, which correspond to arrays
+  # - lists (correspond to arrays)
   # - numerics
+  # - default
+  o <- c("' || ", " || '")
   
   # do escaping for:
+  # - row names
   # - strings
-  if (all(x$type[x$fullkey == y] == "text")) o <- "\""
-  # - special case, row names
-  if (y == "$._row") o <- "\""
+  if (y == "$._row" || 
+      all(tmp == "text")) {
+    o <- c("\"' || ", " || '\"")
+  }
+  # - arrays if mixed with other types in same key
+  if (length(tmp) >= 2 && 
+      "array" %in% tmp) {
+    o <- c("' || json_array(", ") || '")
+  }
   
   return(o)
 }

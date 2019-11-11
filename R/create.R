@@ -40,7 +40,7 @@
 #' if (docdb_exists(src, "contacts")) docdb_delete(src, "contacts")
 #' ## contacts is a dataset included in this package
 #' contacts_df <- data.frame(contacts, stringsAsFactors = FALSE)
-#' docdb_create(src, key = "contacts", value = )
+#' docdb_create(src, key = "contacts", value = contacts_df)
 #' docdb_get(src, "contacts")
 #' }
 docdb_create <- function(src, key, value, ...){
@@ -214,7 +214,7 @@ docdb_create.src_sqlite <- function(src, key, value, ...){
     #     all(sapply(value, jsonlite::validate))) {
     
     # process json row by row
-    value2 <- sapply(X = seq_len(nrow(value)), 
+    value2 <- lapply(X = seq_len(nrow(value)), 
                      FUN = function(x) {
                        
                        # get row from data frame
@@ -260,12 +260,8 @@ docdb_create.src_sqlite <- function(src, key, value, ...){
                      })
     
     # value included json subelements
-    value <- data.frame(
-      "_id" = value2[[1]],
-      "json" = value2[[2]],
-      stringsAsFactors = FALSE,
-      check.names = FALSE)
-    
+    value <- do.call(rbind, value2)
+        
   } else { 
     
     # no json in dataframe, 

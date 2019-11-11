@@ -27,9 +27,11 @@
 #' src <- src_elastic()
 #' if (docdb_exists(src, "iris")) docdb_delete(src, "iris")
 #' docdb_create(src, "iris", iris)
+#' Sys.sleep(2)
 #' docdb_get(src, "iris")
 #' if (docdb_exists(src, "d2")) docdb_delete(src, "d2")
 #' docdb_create(src, "d2", diamonds)
+#' Sys.sleep(3)
 #' docdb_get(src, "d2", limit = 1010)
 #'
 #' # Redis
@@ -112,9 +114,14 @@ docdb_get.src_sqlite <- function(src, key, limit = NULL, ...) {
   n <- -1L
   if (!is.null(limit)) n <- limit
   
-  # temporary file; note this cannot be deleted
-  # because it is streamed into the return value
-  dump <- tempfile()
+  # temporary file for streaming
+  tfname <- tempfile()
+  dump <- file(description = tfname,
+               encoding = "UTF-8")
+  
+  # register to remove file
+  # after used for streaming
+  on.exit(unlink(tfname))
   
   # get data, write to file in ndjson format
   cat(stats::na.omit(unlist(
@@ -125,10 +132,10 @@ docdb_get.src_sqlite <- function(src, key, limit = NULL, ...) {
   sep = "\n", # ndjson
   file = dump)
   
-  # from jsonlite:
+  # from jsonlite documentation:
   # Because parsing huge JSON strings is difficult and inefficient, 
   # JSON streaming is done using lines of minified JSON records, a.k.a. ndjson. 
-  jsonlite::stream_in(file(dump), verbose = FALSE)
+  jsonlite::stream_in(dump, verbose = FALSE)
 
 }
 
