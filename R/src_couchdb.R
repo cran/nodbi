@@ -19,12 +19,13 @@ src_couchdb <- function(host = "127.0.0.1", port = 5984, path = NULL,
                         transport = "http", user = NULL, pwd = NULL,
                         headers = NULL) {
 
-  x <- sofa::Cushion$new(host = host, port = port)
-  x$path <- path
-  x$transport <- transport
-  x$user <- user
-  x$pwd <- pwd
-  x$headers <- headers
+  x <- sofa::Cushion$new(host = host, 
+                         port = port,
+                         path = path,
+                         transport = transport,
+                         user=user, 
+                         pwd=pwd,
+                         headers = headers)
   info <- sofa::ping(x)
   dbs <- sofa::db_list(x)
 
