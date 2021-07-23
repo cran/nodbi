@@ -9,7 +9,7 @@ docdb_create(src, key, value, ...)
 \arguments{
 \item{src}{source object, result of call to an \link{src} function}
 
-\item{key}{(character) A key (collection for mongo)}
+\item{key}{(character) A key (collection for MongoDB)}
 
 \item{value}{(data.frame) A single data.frame}
 
@@ -58,6 +58,6 @@ if (docdb_exists(src, "contacts")) docdb_delete(src, "contacts")
 ## contacts is a dataset included in this package
 contacts_df <- data.frame(contacts, stringsAsFactors = FALSE)
 docdb_create(src, key = "contacts", value = contacts_df)
-docdb_get(src, "contacts")
+docdb_get(src, "contacts")[["friends"]]
 }
 }

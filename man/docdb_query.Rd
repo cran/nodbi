@@ -11,7 +11,7 @@ docdb_query(src, key, query, ...)
 
 \item{key}{(character) A key (collection for mongo)}
 
-\item{query}{various. see Query section below.}
+\item{query}{various, see Query section below.}
 
 \item{...}{Additional named parameters passed on to each package:
 \itemize{
@@ -37,14 +37,13 @@ based search where the query is passed in the URI instead of the body.
 In theory you can instead pass in a JSON or list to the \code{body}
 parameter, but if you want to do complicated Elasticsearch queries
 you may be better of using \pkg{elastic} package directly
-\item MongoDB: query parameters, see \pkg{mongolite} docs for
-help with searches
-\item SQLite: \code{fields}, an optional json string of fields to be
-returned from anywhere in the tree.
-Parameter \code{query}, a json string In analogy to MongoDB,
-a comma separated list of expressions provides an implicit
-AND operation. Nested or otherwise complex queries are not
-yet supported.
+\item MongoDB: a JSON \code{query} string and optionally other parameters
+such as \code{fields}, see \pkg{mongolite}
+\item SQLite: arameter \code{query}, a JSON string; supported at the moment
+is only one level of $or or $and operators with
+$eq, $gt, $gte, $lt, $lte, $ne and $regex as tests.
+Optionally, \code{fields} a JSON string of fields to be
+returned from anywhere in the tree (in dot paths notation).
 }
 }
 
@@ -85,10 +84,17 @@ docdb_get(src, "mtcars")
 
 # SQLite
 src <- src_sqlite()
+
+# various query combinations:
 docdb_create(src, "mtcars", mtcars)
-docdb_query(src, "mtcars", query = "{}", fields = '{"mpg":1, "cyl":1}')
-docdb_query(src, "mtcars", query = '{"gear": {"$lte": 4}}', fields = '{"gear": 1}')
-# for RSQLite from 2.1.2 using PCRE regular expressions
+docdb_query(src, "mtcars", query = '{"mpg":21}')
+docdb_query(src, "mtcars", query = '{"mpg":21}', fields = '{"mpg":1, "cyl":1}')
 docdb_query(src, "mtcars", query = '{"_id": {"$regex": "^.+0.*$"}}', fields = '{"gear": 1}')
+
+# regular expressions except for [...] can be used to select fields:
+docdb_create(src, "mapdata", value = data.frame(mapdata, stringsAsFactors = FALSE))
+docdb_query(src, "mapdata", fields = '{"rows.elements.d.*text": 1}', query = '{}')
+docdb_query(src, "mapdata", fields = '{"rows.elements.\\\\\\\\S+.text": 1}', query = '{}')
+docdb_query(src, "mapdata", fields = '{"rows.elements.*somevalue": 1}', query = '{}')
 }
 }
