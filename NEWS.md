@@ -1,3 +1,12 @@
+nodbi 0.6.0
+===========
+
+### IMPROVEMENTS
+* full support for PostgreSQL (using jsonb)
+
+### BUG FIXES
+* for SQLite add closing file references also on exit
+
 nodbi 0.5.1
 ===========
 
