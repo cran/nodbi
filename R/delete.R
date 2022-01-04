@@ -137,7 +137,7 @@ docdb_delete.src_sqlite <- function(src, key, ...) {
   if (!is.null(tmpdots$query) &&
       jsonlite::validate(tmpdots$query)) {
 
-    # get _id's of document to be deleted
+    # get _id's of document(s) to be deleted
     tmpids <- docdb_query(
       src = src,
       key = key,
@@ -150,24 +150,26 @@ docdb_delete.src_sqlite <- function(src, key, ...) {
       paste0('"', tmpids, '"', collapse = ","), ");")
 
     # do delete
-    as.logical(
-      dbWithTransaction(
-        src$con, {
-          DBI::dbExecute(
-            conn = src$con,
-            statement = statement)
-        }))
+    docdb_exists(src, key) &&
+      as.logical(
+        dbWithTransaction(
+          src$con, {
+            DBI::dbExecute(
+              conn = src$con,
+              statement = statement)
+          }))
 
   } else {
 
-    # remove table
-    as.logical(
+    # remove table and handle error
+    # if table does not exist
+    docdb_exists(src, key) &&
       dbWithTransaction(
         src$con, {
           DBI::dbRemoveTable(
             conn = src$con,
             name = key)
-        }))
+        })
 
   }
 }

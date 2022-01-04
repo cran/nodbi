@@ -10,14 +10,24 @@ testJson2 <- mapdata # no _id's
 testList <- jsonlite::fromJSON(mapdata, simplifyVector = FALSE)
 # factors cannot be expected to be maintained
 testDf2[["Species"]] <- as.character(testDf2[["Species"]])
+#
+# create file-based ndjson
+testFile <- tempfile(fileext = ".ndjson")
+on.exit(try(unlink(testFile), silent = TRUE), add = TRUE)
+jsonlite::stream_out(jsonlite::fromJSON(contacts), con = file(testFile), verbose = FALSE)
+#
+testFile2 <- tempfile(fileext = ".ndjson")
+on.exit(try(unlink(testFile2), silent = TRUE), add = TRUE)
+jsonlite::stream_out(diamonds, con = file(testFile2), verbose = FALSE)
+#
+testUrl <- "http://httpbin.org/stream/98"
 
 #### set up ####
 elasticSleep <- 1L # seconds
 
 
 #### create get delete ####
-context("- create, exists, list, get, delete")
-test_that("docdb_create, docdb_exists, docdb_list, docdb_get, docdb_delete", {
+test_that("- docdb_create, docdb_exists, docdb_list, docdb_get, docdb_delete", {
 
   # get db connection
   tmp <- dbSrcKey()
@@ -81,8 +91,28 @@ test_that("docdb_create, docdb_exists, docdb_list, docdb_get, docdb_delete", {
 
 })
 
+
+#### create (ndjson file) ####
+test_that("- docdb_create (ndjson file)", {
+
+  # get db connection
+  tmp <- dbSrcKey()
+  src <- tmp$testSrc
+  key <- tmp$testKey
+  on.exit(rm(src), add = TRUE)
+
+  # tests
+  expect_equal(docdb_create(src = src, key = key, value = testFile), 5L)
+  expect_equal(suppressWarnings(docdb_create(src = src, key = key, value = testFile)), 0L)
+  expect_equal(docdb_create(src = src, key = key, value = testFile2), nrow(diamonds))
+  expect_equal(docdb_create(src = src, key = key, value = testUrl), 98L)
+  expect_true(docdb_delete(src = src, key = key))
+  expect_false(docdb_delete(src = src, key = key))
+
+})
+
+
 #### query ####
-context("- query")
 test_that("docdb_query", {
 
   tmp <- dbSrcKey()
@@ -107,6 +137,11 @@ test_that("docdb_query", {
   if (!inherits(src, "src_sqlite")) expect_equal(nrow(docdb_query(src = src, key = key, query = '{"age": 20}', fields = '{"_id": 1, "doesnotexist": 1}')), 2L)
   # skip remainder for Elasticsearch
   if (!inherits(src, "src_elastic")) expect_equal(dim(docdb_query(src = src, key = key, query = '{"name": {"$ne": "Lacy Chen"}}')), c(4L, 11L))
+  if (!inherits(src, "src_elastic")) expect_equal(dim(docdb_query(src = src, key = key, query = '{"name": {"$regex": "^[a-zA-Z]{3,4} "}}', fields = '{"name": 1, "age": 1}')), c(3L, 2L))
+  if (!inherits(src, "src_elastic"))
+  # couchdb cannot search in array
+  if (!inherits(src, "src_elastic") & !inherits(src, "src_couchdb")) expect_equal(dim(
+    docdb_query(src = src, key = key, query = '{"tags": {"$regex": "^[a-z]{3,4}$"}}', fields = '{"name": 1, "age": 1}')), c(3L, 2L))
   expect_true(docdb_delete(src = src, key = key))
   if (inherits(src, "src_elastic")) skip("queries need to be translated into elastic syntax")
 
@@ -136,8 +171,7 @@ test_that("docdb_query", {
 })
 
 #### update ####
-context("- update, query")
-test_that("docdb_update", {
+test_that("docdb_update, docdb_query", {
 
   tmp <- dbSrcKey()
   src <- tmp$testSrc
