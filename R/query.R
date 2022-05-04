@@ -259,7 +259,7 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
     fields <- DBI::dbGetQuery(
       conn = src$con,
       statement = paste0(
-        "SELECT DISTINCT fullkey
+        "SELECT DISTINCT REPLACE(fullkey, '\"', '')
          FROM \"", key, "\", json_tree(\"", key, "\".json)
          ;"
       ))[, 1, drop = TRUE]
@@ -324,7 +324,7 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
   if (length(fields[fields != "_id" & fields != ""]) >= 1L) {
     statement <- paste0(
       "SELECT '{\"_id\":\"' || _id || '\",' || group_concat('\"' ||
-       LTRIM(fullkey, '$.') || '\":' ||
+       LTRIM(REPLACE(fullkey, '\"', ''), '$.') || '\":' ||
        IIF(type = 'text', '\"', '') || value || IIF(type = 'text', '\"', ''))
        || '}' AS json FROM \"", key, "\", json_tree(\"", key, "\".json)")
   }
@@ -349,7 +349,7 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
               yes = paste0(" _id ", x[2], " "),
               # fieldsSql2fullKey has regexps for subfields, arrays
               no = paste0(
-                " SUM ( fullkey REGEXP \"",
+                " SUM ( REPLACE(fullkey, '\"', '') REGEXP \"",
                 gsub("\"", "", fieldsSql2fullKey(x[1])),
                 "\" AND value ", x[2], " ) > 0 ")
             )), USE.NAMES = FALSE),
@@ -364,7 +364,7 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
       yes = "",
       no = paste0(
         ifelse(any(querySql != ""), " AND ", ""),
-        " fullkey REGEXP \"",
+        " REPLACE(fullkey, '\"', '') REGEXP \"",
         ifelse(
           test = (length(fields) == 1L) && fields == "",
           # no field: get root of document
@@ -492,7 +492,8 @@ docdb_query.src_postgres <- function(src, key, query, ...) {
                 test = grepl("^ IN ", x[2]),
                 yes = paste0(
                   "@.", x[1], " == ",
-                  strsplit(sub(" IN [(](.+)[)]", "\\1", x[2]), ",")[[1]],
+                  # split on comma after number or double quote, avoid splitting on comma in string
+                  strsplit(gsub("([0-9\"]),", "\\1@", sub(" IN [(](.+)[)]", "\\1", x[2])), "@")[[1]],
                   collapse = " || "),
                 no = paste0(
                   "@.",
