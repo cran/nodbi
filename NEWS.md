@@ -1,3 +1,12 @@
+nodbi 0.8.0
+===========
+
+### Changes
+* refactored `docdb_update.src_couchdb` to use `jqr`
+* adapted `docdb_create` to accept `jsonlite`, `jsonify`, `jqr` JSON
+* added details to README
+* testing (unset LANG, relocate open code, better cleaning up)
+
 nodbi 0.7.1
 ================
 

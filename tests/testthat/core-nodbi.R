@@ -2,44 +2,17 @@
 # test_<database>.R files in order to
 # canonically test nodbi core functions
 
-#### test data ####
-testDf <- mtcars # has rownames
-testDf2 <- iris # no rownames
-testJson <- contacts # has _id's
-testJson2 <- mapdata # no _id's
-testList <- jsonlite::fromJSON(mapdata, simplifyVector = FALSE)
-# factors cannot be expected to be maintained
-testDf2[["Species"]] <- as.character(testDf2[["Species"]])
-#
-# create file-based ndjson
-testFile <- tempfile(fileext = ".ndjson")
-on.exit(try(unlink(testFile), silent = TRUE), add = TRUE)
-jsonlite::stream_out(jsonlite::fromJSON(contacts), con = file(testFile), verbose = FALSE)
-#
-testFile2 <- tempfile(fileext = ".ndjson")
-on.exit(try(unlink(testFile2), silent = TRUE), add = TRUE)
-jsonlite::stream_out(diamonds, con = file(testFile2), verbose = FALSE)
-#
-testUrl <- "http://httpbin.org/stream/98"
-
-#### set up ####
-elasticSleep <- 1L # seconds
-
-
-#### create get delete ####
+#### create, get, exists, delete ####
 test_that("- docdb_create, docdb_exists, docdb_list, docdb_get, docdb_delete", {
 
   # get db connection
   tmp <- dbSrcKey()
   src <- tmp$testSrc
   key <- tmp$testKey
-  on.exit(rm(src), add = TRUE)
-
-  # clean up databases
-  if (FALSE) {
-    for (db in docdb_list(src)) {src$con$run(paste0('{"drop":"', db,'"}'))} # mongo
-    for (db in docdb_list(src)) {docdb_delete(src, db)} # all others
-  }
+  on.exit(try({
+    docdb_delete(src = src, key = key)
+    rm(src)
+  }, silent = TRUE), add = TRUE)
 
   # testDf
   expect_equal(docdb_create(src = src, key = key, value = testDf), nrow(testDf))
@@ -87,25 +60,37 @@ test_that("- docdb_create, docdb_exists, docdb_list, docdb_get, docdb_delete", {
   expect_equal(docdb_create(src = src, key = key, value = testList), 2L)
   if (inherits(src, "src_elastic")) Sys.sleep(elasticSleep)
   expect_identical(sort(unlist(docdb_get(src = src, key = key)[, -1], use.names = FALSE)), sort(unlist(testList, use.names = FALSE)))
+
+  # clean up
   expect_true(docdb_delete(src = src, key = key))
+  expect_false(docdb_delete(src = src, key = key))
 
 })
 
 
-#### create (ndjson file) ####
-test_that("- docdb_create (ndjson file)", {
+#### create (ndjson) ####
+test_that("- docdb_create (ndjson)", {
 
   # get db connection
   tmp <- dbSrcKey()
   src <- tmp$testSrc
   key <- tmp$testKey
-  on.exit(rm(src), add = TRUE)
+  on.exit(try({
+    docdb_delete(src = src, key = key)
+    rm(src)
+  }, silent = TRUE), add = TRUE)
+
+  # get temporary local files with ndjson
+  tF <- testFile()
+  tF2 <- testFile2()
 
   # tests
-  expect_equal(docdb_create(src = src, key = key, value = testFile), 5L)
-  expect_equal(suppressWarnings(docdb_create(src = src, key = key, value = testFile)), 0L)
-  expect_equal(docdb_create(src = src, key = key, value = testFile2), nrow(diamonds))
+  expect_equal(docdb_create(src = src, key = key, value = tF), 5L)
+  expect_equal(suppressWarnings(docdb_create(src = src, key = key, value = tF)), 0L)
+  expect_equal(docdb_create(src = src, key = key, value = tF2), nrow(diamonds))
   expect_equal(docdb_create(src = src, key = key, value = testUrl), 98L)
+
+  # clean up
   expect_true(docdb_delete(src = src, key = key))
   expect_false(docdb_delete(src = src, key = key))
 
@@ -118,7 +103,10 @@ test_that("docdb_query", {
   tmp <- dbSrcKey()
   src <- tmp$testSrc
   key <- tmp$testKey
-  on.exit(rm(src), add = TRUE)
+  on.exit(try({
+    docdb_delete(src = src, key = key)
+    rm(src)
+  }, silent = TRUE), add = TRUE)
 
   # testJson
   expect_equal(docdb_create(src = src, key = key, value = testJson), 5L)
@@ -132,16 +120,18 @@ test_that("docdb_query", {
   expect_equal(dim(docdb_query(src = src, key = key, query = '{"age": 20}', fields = '{"_id": 1, "friends.id": 1}')), c(2L, 2L)) # full friends field for couchdb, elasticsearch
   expect_true(nrow(docdb_query(src = src, key = key, query = '{"age": 20}', fields = '{"_id": 1, "age": 1, "doesnotexist": 1}')) == 2L)
   expect_true(ncol(docdb_query(src = src, key = key, query = '{"age": 20}', fields = '{"_id": 1, "age": 1, "doesnotexist": 1}')) <= 3L)
+
   # anomaly that is very difficult to correct, nothing returned for non-existing field by RSQLite
   if (inherits(src, "src_sqlite")) expect_equal(dim(docdb_query(src = src, key = key, query = '{"age": 20}', fields = '{"_id": 1, "doesnotexist": 1}')), c(0L, 0L))
   if (!inherits(src, "src_sqlite")) expect_equal(nrow(docdb_query(src = src, key = key, query = '{"age": 20}', fields = '{"_id": 1, "doesnotexist": 1}')), 2L)
-  # skip remainder for Elasticsearch
+
+   # skip remainder for Elasticsearch
   if (!inherits(src, "src_elastic")) expect_equal(dim(docdb_query(src = src, key = key, query = '{"name": {"$ne": "Lacy Chen"}}')), c(4L, 11L))
   if (!inherits(src, "src_elastic")) expect_equal(dim(docdb_query(src = src, key = key, query = '{"name": {"$regex": "^[a-zA-Z]{3,4} "}}', fields = '{"name": 1, "age": 1}')), c(3L, 2L))
   if (!inherits(src, "src_elastic"))
-  # couchdb cannot search in array
-  if (!inherits(src, "src_elastic") & !inherits(src, "src_couchdb")) expect_equal(dim(
-    docdb_query(src = src, key = key, query = '{"tags": {"$regex": "^[a-z]{3,4}$"}}', fields = '{"name": 1, "age": 1}')), c(3L, 2L))
+    # couchdb cannot search in array
+    if (!inherits(src, "src_elastic") & !inherits(src, "src_couchdb")) expect_equal(dim(
+      docdb_query(src = src, key = key, query = '{"tags": {"$regex": "^[a-z]{3,4}$"}}', fields = '{"name": 1, "age": 1}')), c(3L, 2L))
   expect_true(docdb_delete(src = src, key = key))
 
   # remainder skipped for Elasticsearch until queries implemented in nodbi::docdb_query.src_elastic()
@@ -150,7 +140,6 @@ test_that("docdb_query", {
   # testJson2
   expect_equal(docdb_create(src = src, key = key, value = testJson2), 2L)
   expect_equal(dim(docdb_query(src = src, key = key, query = '{}', fields = '{"rows.elements.distance.somevalue": 1}')), c(2L, 1L))
-  # 2022-05-03 handle fields and queries with special characters
   expect_equal(nrow(docdb_query(src = src, key = key, query = '{}', fields = '{"destination_addresses": 1}')), 2L)
   expect_equal(length(unlist(docdb_query(
     src = src, key = key, query = '{"origin_addresses": {"$in": ["Santa Barbara, CA, USA"]}}', fields = '{"destination_addresses": 1}'))), 3L)
@@ -170,6 +159,8 @@ test_that("docdb_query", {
   expect_equal(nrow(docdb_query(src = src, key = key, query = '{"$or": [{"mpg": {"$lte": 18}}, {"_id": {"$regex": "^F[a-z].*", "$options": ""}}]}')), 16L)
   expect_equal(nrow(docdb_query(src = src, key = key, query = '{"$or": [{"mpg": {"$lte": 18}}, {"_id": {"$regex": "^F[a-z].*"}}]}')), 16L)
   expect_error(docdb_get(src = src, key = key, query = '{"mpg": {"$lte": 18}}', fields = '{"mpg":1, "cyl":1, "_id": 0}'), "docdb_query")
+
+  # clean up
   expect_true(docdb_delete(src = src, key = key))
 
 })
@@ -180,28 +171,37 @@ test_that("docdb_update, docdb_query", {
   tmp <- dbSrcKey()
   src <- tmp$testSrc
   key <- tmp$testKey
-  on.exit(rm(src), add = TRUE)
+  on.exit(try({
+    docdb_delete(src = src, key = key)
+    rm(src)
+  }, silent = TRUE), add = TRUE)
 
   expect_equal(docdb_create(src = src, key = key, value = testDf), nrow(testDf))
   if (inherits(src, "src_elastic")) Sys.sleep(elasticSleep)
-  #
+
+  # tests1
   expect_equal(docdb_update(src = src, key = key, value = mtcars[3, 4:5], query = '{"gear": 3}'), 15L) # hp = 93, drat = 3.9
   expect_true(all(docdb_query(src, key, query = '{"gear": 3}', fields = '{"hp": 1}')[["hp"]] == 93L))
   expect_true(mean(docdb_query(src, key, query = '{"gear": 4}', fields = '{"drat": 1}')[["drat"]]) > 3.9)
-  #
+
+  # tests2
   expect_equal(docdb_update(src = src, key = key, value = mtcars[1:2, 4:5], query = '{"gear": 9999}'), 0L)
   expect_equal(docdb_update(src = src, key = key, value = mtcars[1:2, 4:5], query = '{"gear": 3}'), 15L)
   expect_equal(docdb_query(src, key, query = '{"gear": 3}', fields = '{"hp": 1}')[1, "hp", drop = TRUE], list(c(110, 110)))
-  #
+
+  # tests3
   expect_equal(docdb_update(src = src, key = key, value = list(carb = 99L), query = '{"gear": 4}'), 12L)
   expect_true(all(docdb_query(src, key, query = '{"gear": 4}', fields = '{"carb": 1}')[["carb"]] == 99L))
-  #
+
+  # tests4
   expect_equal(docdb_update(src = src, key = key, value = '{"vs": 9}', query = '{"gear": 5}'), 5L)
   expect_true(all(docdb_query(src, key, query = '{"gear": 5}', fields = '{"vs": 1}')[["vs"]] == 9L))
-  #
+
+  # tests5
   if (!inherits(src, "src_elastic")) expect_equal(docdb_update(src = src, key = key, value = '{"vs": 77}', query = '{"gear": {"$in": [5,4]}}'), 17L)
   if (!inherits(src, "src_elastic")) expect_true(all(docdb_query(src, key, query = '{"gear": {"$in": [5,4]}}', fields = '{"vs": 1}')[["vs"]] == 77L))
-  #
+
+  # clean up
   expect_true(docdb_delete(src = src, key = key))
 
 })

@@ -1,13 +1,13 @@
-d7f0702ebc5911a8e375d188cb788104 *DESCRIPTION
+186d5c4f79ac66d690fdacf0039cd31f *DESCRIPTION
 98d381a5003e75fa5753032fd06892d9 *LICENSE
 8373a66d4060258e2453a36b73473dc8 *NAMESPACE
-1e3562b6b2832e93dac1fd2df7d15262 *NEWS.md
-34f920e7987dcf521cbb09b30d6f2bc1 *R/create.R
+b34800bc156df1e23ee237c6d1025455 *NEWS.md
+616ed0ff917e0bbfb307fee776507ca2 *R/create.R
 a1d50879481c7f8dcbba4ca456f478a6 *R/delete.R
 8caa1b1b5d1c1bdaea141c2c3dbd2b8e *R/exists.R
 526730ca703e895112fe84de5849df0c *R/get.R
 1fe5303403084f1d57735e8ed20f7bfb *R/list.R
-389f79239c7bd86577ab74f0643c174d *R/nodbi-package.R
+565fd8efd67c7122aef5c1e132f53b6f *R/nodbi-package.R
 4e2c7fb1b4e2dfa8d8c5ba08a620efe4 *R/query.R
 437ef6dc4e807d18078dbfab9e28cd26 *R/src.R
 9a830187bc5ff130d6a6dbceb23a32d9 *R/src_couchdb.R
@@ -15,7 +15,7 @@ e65cb2e375eae10b41fe38ee5a9ce884 *R/src_elasticsearch.R
 f51c6e18b9b7769cef0da7713b10544a *R/src_mongo.R
 076ed345d0407077f4887c138a40047a *R/src_postgres.R
 64d39a26063d9398151d151798a412f9 *R/src_sqlite.R
-5971f06fba5ee85368babeb36a8e29fd *R/update.R
+cfb684374b3018f265f2476ee6f69ff6 *R/update.R
 8f44bb6f2568a7eb1347eb4a4992025d *R/zzz.R
 36be23b3aa8cd97dd22227f53c3b9a6c *data/diamonds.rda
 03065ed0ba3a452b4430f0ce44bfa4fb *inst/ignore/benchmarking.Rmd
@@ -28,7 +28,7 @@ b0aa7e84d121777d68ca2f5237df7490 *inst/ignore/delete-pulled.R
 28c5222fa386df55b4e4cf68f3ba6f6f *inst/ignore/src_riak.R
 45f3bde6f124c5c449df3ebf81f0eae9 *inst/ignore/test-riak.R
 dcd38fd3f57d1cc6aa21d65cdee380c2 *man/contacts.Rd
-357a463a618cd757ed54988a4bbf9a6e *man/diamonds.Rd
+94c921ebd85f43c00bfb5cd6227d4913 *man/diamonds.Rd
 8b0122a88c5c38d6e1294dcd533a8c12 *man/docdb_create.Rd
 279a3d3c1135ed1100615040f7132b34 *man/docdb_delete.Rd
 6559bc3412eae3cbb6b147e238f0646a *man/docdb_exists.Rd
@@ -48,8 +48,8 @@ a767f9a8eab5a0ff1044bec1d27da90f *man/src_mongo.Rd
 04c06d7a9e9e93aa384d8bca58df9ff7 *man/src_redis-defunct.Rd
 8a44024e277de365fcbcc7efe869c4aa *man/src_sqlite.Rd
 a01a42a892ff4805c43e535153a67eeb *tests/testthat.R
-2890261ede8f95622f0d847f099590ae *tests/testthat/core-nodbi.R
-c990649e27b10fb4d8dc41dafc60fb8e *tests/testthat/helper-nodbi.R
+43387bc9cafa7302004dfa21d1547dc5 *tests/testthat/core-nodbi.R
+115672f6407ad40f65c174b7b8b682d2 *tests/testthat/helper.R
 af344dac827377a378ff8690dcc5ae1b *tests/testthat/test-couchdb.R
 3ef73c0e535e3c6a66d763b2073cd533 *tests/testthat/test-elastic.R
 dc89a7721bcd1973825f0a7c583d2b2c *tests/testthat/test-mongodb.R
