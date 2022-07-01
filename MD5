@@ -1,8 +1,8 @@
-186d5c4f79ac66d690fdacf0039cd31f *DESCRIPTION
+f2c91febd72eed7c638d77f6854d18ff *DESCRIPTION
 98d381a5003e75fa5753032fd06892d9 *LICENSE
 8373a66d4060258e2453a36b73473dc8 *NAMESPACE
-b34800bc156df1e23ee237c6d1025455 *NEWS.md
-616ed0ff917e0bbfb307fee776507ca2 *R/create.R
+8375fc4dde985fca33fa89cd01e5a477 *NEWS.md
+704def57d9146cbc0076c87f52d9950e *R/create.R
 a1d50879481c7f8dcbba4ca456f478a6 *R/delete.R
 8caa1b1b5d1c1bdaea141c2c3dbd2b8e *R/exists.R
 526730ca703e895112fe84de5849df0c *R/get.R
@@ -15,7 +15,7 @@ e65cb2e375eae10b41fe38ee5a9ce884 *R/src_elasticsearch.R
 f51c6e18b9b7769cef0da7713b10544a *R/src_mongo.R
 076ed345d0407077f4887c138a40047a *R/src_postgres.R
 64d39a26063d9398151d151798a412f9 *R/src_sqlite.R
-cfb684374b3018f265f2476ee6f69ff6 *R/update.R
+f27316180c057f62d69f5833e5dcb09f *R/update.R
 8f44bb6f2568a7eb1347eb4a4992025d *R/zzz.R
 36be23b3aa8cd97dd22227f53c3b9a6c *data/diamonds.rda
 03065ed0ba3a452b4430f0ce44bfa4fb *inst/ignore/benchmarking.Rmd
