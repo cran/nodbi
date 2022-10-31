@@ -1,3 +1,15 @@
+nodbi 0.9.0
+================
+
+### Changes
+* adding support for duckdb (R package version 0.6.0 or higher) as database backend
+
+nodbi 0.8.1.9000
+================
+
+### Changes
+* suppressed warnings when checking if a string points to a file
+
 nodbi 0.8.1
 ===========
 
