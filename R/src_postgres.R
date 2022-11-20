@@ -40,7 +40,7 @@ src_postgres <- function(dbname = "test",
 
   # add plpgsql function for docdb_update(), which should only raise
   # an error if the plpgsql extension is not installed in dbname
-  if (inherits(try(
+  out <- try(
     # credits: Joao Haas, https://stackoverflow.com/a/65093455
     DBI::dbExecute(conn = con, statement = 'CREATE OR REPLACE FUNCTION
      jsonb_merge_patch("target" jsonb, "patch" jsonb)
@@ -62,10 +62,21 @@ src_postgres <- function(dbname = "test",
      WHERE jsonb_typeof("pval") != \'null\' OR "pval" ISNULL;
     END;
    $$ LANGUAGE plpgsql;
-  '), silent = TRUE), "try-error")) {
+  '), silent = TRUE)
+
+  if (inherits(out, "try-error") &&
+      !grepl("tuple concurrently updated", out)) {
+
     stop("PostgreSQL does not support plpgsql in table '", dbname,
          "', but this is needed for nodbi::docdb_update()")
   }
+
+  # ensure disconnect
+  reg.finalizer(
+    e = globalenv(),
+    f = closeNodbiConnections,
+    onexit = TRUE
+  )
 
   # return standard nodbi structure
   structure(list(con = con,

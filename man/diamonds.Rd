@@ -27,4 +27,4 @@ from \pkg{ggplot2}
 \description{
 diamonds data set
 }
-\keyword{data}
+\keyword{datasets}

@@ -4,17 +4,19 @@
 \alias{src}
 \title{Setup database connections}
 \description{
-Setup database connections
+There is a \verb{src_*()} function to setup a connection to each
+of the database backends. The backends may have specific parameters
+in the respective function \verb{src_*()}, but all other \code{nodbi} functions
+are independent of the backend (e.g., see \code{\link[=docdb_query]{docdb_query()}}).
 }
 \details{
-There is a \verb{src_*()} function to setup a connection to each
-of the database backends. Each has their own unique set of parameters.
 \itemize{
 \item MongoDB - \code{\link[=src_mongo]{src_mongo()}}
 \item SQLite - \code{\link[=src_sqlite]{src_sqlite()}}
 \item Elasticsearch - \code{\link[=src_elastic]{src_elastic()}}
 \item CouchDB - \code{\link[=src_couchdb]{src_couchdb()}}
 \item PostgreSQL - \code{\link[=src_postgres]{src_postgres()}}
+\item DuckDB - \code{\link[=src_duckdb]{src_duckdb()}}
 }
 
 Documentation details for each database:
@@ -25,14 +27,16 @@ Documentation details for each database:
 \url{https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html}
 \item CouchDB - \url{http://docs.couchdb.org/}
 \item PostgreSQL - \url{https://www.postgresql.org/docs/current/functions-json.html}
+\item DuckDB - \url{https://duckdb.org/docs/extensions/json}
 }
 
-Documentation for R packages used by \code{nodbi} for the databases:
+Documentation of R packages used by \code{nodbi} for the databases:
 \itemize{
 \item mongolite - \url{https://CRAN.R-project.org/package=mongolite}
 \item RSQLite - \url{https://CRAN.R-project.org/package=RSQLite}
 \item elastic - \url{https://CRAN.R-project.org/package=elastic}
 \item sofa - \url{https://CRAN.R-project.org/package=sofa}
 \item RPostgres - \url{https://rpostgres.r-dbi.org/}
+\item duckdb - \url{https://duckdb.r-universe.dev/ui#package:duckdb}
 }
 }

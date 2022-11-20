@@ -13,4 +13,4 @@ contacts
 \description{
 contacts JSON data set
 }
-\keyword{data}
+\keyword{datasets}

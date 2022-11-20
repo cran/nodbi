@@ -6,7 +6,6 @@
 #' 'SQLite/JSON1', 'PostgreSQL' and 'DuckDB'.
 #'
 #' @name nodbi-package
-#' @aliases nodbi
 #' @docType package
 #' @author Scott Chamberlain \email{sckott@@protonmail.com}
 #' @author Rich FitzJohn \email{rich.fitzjohn@@gmail.com}
@@ -18,6 +17,7 @@ NULL
 #' This function is defunct.
 #' @rdname src_etcd-defunct
 #' @keywords internal
+#' @noRd
 src_etcd <- function() {
   .Defunct(msg = "This function is defunct; etcd removed")
 }
@@ -25,6 +25,7 @@ src_etcd <- function() {
 #' This function is defunct.
 #' @rdname src_redis-defunct
 #' @keywords internal
+#' @noRd
 src_redis <- function() {
   .Defunct(msg = "This function is defunct; redis removed")
 }
@@ -35,6 +36,7 @@ src_redis <- function() {
 #' - [src_redis]: redis removed, with all its S3 methods for `docdb_*`
 #'
 #' @name nodbi-defunct
+#' @noRd
 NULL
 
 #' diamonds data set
@@ -57,7 +59,7 @@ NULL
 #' @source from \pkg{ggplot2}
 #' @name diamonds
 #' @docType data
-#' @keywords data
+#' @keywords datasets
 NULL
 
 
@@ -66,9 +68,7 @@ NULL
 #' @format A JSON string with ragged, nested contact details
 #' @name contacts
 #' @docType data
-#' @keywords data
-#' @export
-#'
+#' @keywords datasets
 contacts <- '
 [
   {
@@ -235,12 +235,10 @@ contacts <- '
 
 #' mapdata JSON data set
 #'
-#' @format A JSON string with ragged, nested map
+#' @format A JSON string with ragged, nested travel details
 #' @name mapdata
 #' @docType data
-#' @keywords data
-#' @export
-#'
+#' @keywords datasets
 mapdata <- '
   [{"destination_addresses": [
     "Miami, FL, USA",
