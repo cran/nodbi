@@ -4,10 +4,14 @@
 #'
 #' @param query (character) A JSON query string, see examples.
 #'  Can use multiple comparisons / tests (e.g., '$gt', '$ne', '$in', '$regex'),
-#'  with at most one logic operator ('$and' if not specified, or '$or').
+#'  with at most one logic operator ('$and' if not specified, or '$or'),
+#'  see examples.
 #'
 #' @param ... Optionally, `fields` a JSON string of fields to
-#' be returned from anywhere in the tree (dot paths notation).
+#' be returned from anywhere in the tree (dot paths notation), see examples.
+#'
+#' @note A dot in `query` or `fields` is interpreted as a dot poth;
+#' it is not supported to have a dot in the key / name of a field.
 #'
 #' Main functions used per database:
 #' - MongoDB: find() in [mongolite::mongo()]
@@ -29,7 +33,7 @@
 #' docdb_query(src, "mtcars", query = '{"mpg":21, "gear": {"$lte": 4}}')
 #' docdb_query(src, "mtcars", query = '{"mpg":21}', fields = '{"mpg":1, "cyl":1}')
 #' docdb_query(src, "mtcars", query = '{"_id": {"$regex": "^.+0.*$"}}', fields = '{"gear": 1}')
-#' # complex query, not supported for Elasticsearch and CouchDB backends at this time:
+#' # complex query, not supported for src_elastic and src_couchdb backends at this time:
 #' docdb_query(src, "mtcars", query = '{"$and": [{"mpg": {"$lte": 18}}, {"gear": {"$gt": 3}}]}')
 #' }
 docdb_query <- function(src, key, query, ...) {
@@ -43,6 +47,8 @@ docdb_query <- function(src, key, query, ...) {
 docdb_query.src_couchdb <- function(src, key, query, ...) {
 
   # https://cran.r-project.org/web/packages/sofa/vignettes/query_tutorial.html
+
+  # TODO refactor to use jqr in analogy to function dbiGetProcessData
 
   # make dotted parameters accessible
   params <- list(...)
@@ -58,8 +64,13 @@ docdb_query.src_couchdb <- function(src, key, query, ...) {
       if (any(grepl("[.]", fields))) message(
         "Note: return root field(s) because subfields cannot be accessed for: ",
         paste0(fields[grepl("[.]", fields)], collapse = ", "))
-      fields <- gsub("(.+?)[.].*", "\\1", fields)
+      fields <- sub("(.+?)[.].*", "\\1", fields)
       fields <- paste0('"fields": [', paste0('"', fields, '"', collapse = ", "), ']')
+      # ensure only records are returned that have sought fields
+      if (query == '{}') {
+        addQuery <- paste0("{", paste0('"', sub("(.+?)[.].*", "\\1", m), '":{"$exists":true}'), "}", collapse = ",")
+        query <- paste0('{"$and":[', addQuery, ']}')
+      }
     }
   }
 
@@ -109,6 +120,8 @@ docdb_query.src_couchdb <- function(src, key, query, ...) {
 docdb_query.src_elastic <- function(src, key, query, ...) {
 
   # https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html
+
+  # TODO refactor to use jqr in analogy to function dbiGetProcessData
 
   # make dotted parameters accessible
   params <- list(...)
@@ -210,23 +223,40 @@ docdb_query.src_mongo <- function(src, key, query, ...) {
   if (!length(params[["sort"]])) params[["sort"]] <- '{"_id": 1}'
   if (!length(params[["fields"]])) params[["fields"]] <- '{}'
 
+  # if regexp query lacks options, add them in
+  if (grepl('"[$]regex" *: *"[^,$:}]+?" *}', query)) query <-
+    sub('("[$]regex" *: *"[^,$:}]+?" *)', '\\1, "$options": ""', query)
+
+  # make sure fields in query exist in records
+  # purpose: match with sqlite, postgres, duckdb
+  if (query != '{}') {
+    m <- stringi::stri_match_all_regex(query, '"([-@._\\w]+?)":')[[1]][, 2, drop = TRUE]
+    addQuery <- paste0("{", paste0('"', m, '":{"$exists":true}'), "}", collapse = ",")
+    query <- paste0('{"$and":[', sub("", "", query), ",", addQuery, ']}')
+    # jsonlite::validate(query)
+  }
+
   # separate fields to keep and to remove
   if (length(params[["fields"]])) {
+
     tmpFields <- params[["fields"]]
     params[["fields"]] <- '{}'
+
     m <- stringi::stri_match_all_regex(tmpFields, '"([-@._\\w]+?)":[ ]*1')[[1]][, 2, drop = TRUE]
     if (!is.na(m[1])) fields <- m
     if (!is.na(m[1]) && length(fields)) params[["fields"]] <-
       paste0('{', paste0('"', fields, '":1', collapse = ','), '}', collapse = '')
     fields <- NULL
+
     m <- stringi::stri_match_all_regex(tmpFields, '"([-@._\\w]+?)":[ ]*0')[[1]][, 2, drop = TRUE]
     if (!is.na(m[1])) tmpFields <- m
     if (!is.na(m[1]) && length(tmpFields)) fields <- tmpFields
-  }
 
-  # if regexp query lacks options, add them in
-  if (grepl('"[$]regex" *: *"[^,$:}]+?" *}', query)) query <-
-    sub('("[$]regex" *: *"[^,$:}]+?" *)', '\\1, "$options": ""', query)
+    # make sure sought fields exist but only if no query is specified
+    # purpose: match with sqlite, postgres, duckdb
+    if (query == '{}') query <- gsub(":1", ':{"$exists":true}', params[["fields"]])
+
+  }
 
   # get data
   out <- do.call(
@@ -330,7 +360,9 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
     statement <- paste0(
       "SELECT '{\"_id\":\"' || _id || '\",' || group_concat('\"' ||
        LTRIM(REPLACE(fullkey, '\"', ''), '$.') || '\":' ||
-       IIF(type = 'text', '\"', '') || value || IIF(type = 'text', '\"', ''))
+       IIF(type = 'text', '\"', '') ||
+       IIF(type = 'text', REPLACE(value, '\"', '\\\"'), value) ||
+       IIF(type = 'text', '\"', ''))
        || '}' AS json FROM \"", key, "\", json_tree(\"", key, "\".json)")
   }
 
@@ -667,7 +699,10 @@ docdb_query.src_duckdb <- function(src, key, query, ...) {
                   )), ") ELSE regexp_matches(json_extract(json, '$.", x[1], "'), '",
               sub("^REGEXP \"?(.+?)\"?$", "\\1", x[2]), "') END")),
             no = paste0(
-              "CASE WHEN json_type(json, '$.", x[1], "') IN ('VARCHAR', 'DOUBLE', 'BIGINT', 'UBIGINT') ",
+              # duckdb 0.7.0 adding coalesce to capture json_type
+              # returning NA or NULL if the path cannot be found
+              "CASE WHEN coalesce(json_type(json, '$.", x[1], "'), '') ",
+              "     IN ('VARCHAR', 'DOUBLE', 'BIGINT', 'UBIGINT', '') ",
               " THEN json_extract_string(json, '$.", x[1], "') ", gsub('"', "'", x[2]),
               " ELSE json_extract(json, '$.", x[1], "') ", gsub('"', "'", x[2]),
               " END")
@@ -750,8 +785,7 @@ dbiGetProcessData <- function(
   ## get data, write to file in ndjson format ("\n")
   writeLines(
     paste0(
-      # protect against empty query result
-      "",
+      "", # protect against empty query result
       # eliminate rows without any json
       stats::na.omit(
         DBI::dbGetQuery(
@@ -783,18 +817,16 @@ dbiGetProcessData <- function(
 
     # get another file name
     tjname <- tempfile()
-    tjnameCon <- file(tjname, open = "wt", encoding = "native.enc")
     # register to remove file after used for streaming
-    on.exit(try(close(tjnameCon), silent = TRUE), add = TRUE)
     on.exit(unlink(tjname), add = TRUE)
 
     # write data
-    writeLines(
-      jqr::jq(file(tfname, encoding = "UTF-8"), jqrSubsetFunction),
-      con = tjnameCon,
-      sep = "\n",
-      useBytes = TRUE)
-    close(tjnameCon)
+    jqr::jq(
+      file(tfname, encoding = "UTF-8"),
+      jqrSubsetFunction,
+      flags = jqr::jq_flags(pretty = FALSE),
+      out = tjname
+    )
 
     # early exit
     if (!file.size(tjname)) return(NULL)
@@ -839,19 +871,16 @@ dbiGetProcessData <- function(
 
     # get another file name
     tjname <- tempfile()
-    tjnameCon <- file(tjname, open = "wt", encoding = "native.enc")
     # register to remove file after used for streaming
-    on.exit(try(close(tjnameCon), silent = TRUE), add = TRUE)
     on.exit(unlink(tjname), add = TRUE)
 
     # write data
-    writeLines(
-      jqr::jq(file(tfname, encoding = "UTF-8"), jqFields),
-      # to create ndjson
-      con = tjnameCon,
-      sep = "\n",
-      useBytes = TRUE)
-    close(tjnameCon)
+    jqr::jq(
+      file(tfname, encoding = "UTF-8"),
+      jqFields,
+      flags = jqr::jq_flags(pretty = FALSE),
+      out = tjname
+    )
 
     # early exit
     if (!file.size(tjname)) return(NULL)

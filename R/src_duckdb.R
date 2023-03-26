@@ -32,6 +32,25 @@ src_duckdb <- function(
     onexit = TRUE
   )
 
+  # test and advise
+  xtmsg <- function() {
+    try(DBI::dbDisconnect(con, shutdown = TRUE), silent = TRUE)
+    stop(
+    "DuckDB extension JSON not loadable. To install it, run ",
+    "DBI::dbExecute(duckdb::dbConnect(duckdb::duckdb()), 'INSTALL json;') or ",
+    "install.packages('duckdb', repos = 'https://duckdb.r-universe.dev')",
+    call. = FALSE)
+  }
+  #
+  tmp <- DBI::dbGetQuery(con, 'SELECT * FROM duckdb_extensions();')
+  if (inherits(tmp, "try-error") || !nrow(tmp)) xtmsg()
+  if (nrow(tmp)) tmp <- tmp[tmp[["extension_name"]] == "json", , drop = TRUE]
+  if (!tmp$installed) xtmsg()
+  if (!tmp$loaded) {
+    if (inherits(try(DBI::dbExecute(con, "LOAD json;"),
+      silent = TRUE), "try-error"))  xtmsg()
+  }
+
   # potential security concern with
   # storing the full connection string
   structure(list(con = con,
@@ -48,10 +67,13 @@ print.src_duckdb <- function(x, ...) {
   size <- switch(dbdir,
     ":memory:" = utils::object.size(x),
     file.size(dbdir))
+  dbver <- try(DBI::dbGetQuery(x$con, "PRAGMA version;")[[
+    "library_version"]], silent = TRUE)
+  if (inherits(dbver, "try-error")) dbver <- "unknonwn"
 
   cat(sprintf(
-    "src: duckdb\nDatabase: %s\nSize: %s MB\n",
-    dbdir, round(as.integer(size / 1000^6))
+    "src: duckdb\nDatabase: %s\nSize: %s MB\nVersion: %s",
+    dbdir, round(as.integer(size / 1000^6)), dbver
   ))
 
 }

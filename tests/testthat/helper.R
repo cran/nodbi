@@ -8,7 +8,11 @@ elasticSleep <- 1L # seconds
 # Changing language has no effect when envvar LANG='C'
 Sys.unsetenv("LANG")
 
-
+# for interactive testing:
+# devtools::load_all()
+# source("tests/testthat/helper.R")
+# go to "tests/testthat/test-*.R"
+# go to "tests/testthat/core-nodbi.R"
 
 #### data for tests ####
 
@@ -113,6 +117,6 @@ skip_if_no_duckdb <- function() {
   if (inherits(try(
     duckdb::dbDisconnect(src_duckdb()$con, shutdown = TRUE),
     silent = TRUE), "try-error")) {
-    skip("duckdb is not available")
+    skip("duckdb or its JSON extension is not available")
   }
 }

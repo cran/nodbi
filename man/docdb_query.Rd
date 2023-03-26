@@ -18,10 +18,22 @@ a table name for SQLite and for PostgreSQL)}
 
 \item{query}{(character) A JSON query string, see examples.
 Can use multiple comparisons / tests (e.g., '$gt', '$ne', '$in', '$regex'),
-with at most one logic operator ('$and' if not specified, or '$or').}
+with at most one logic operator ('$and' if not specified, or '$or'),
+see examples.}
 
 \item{...}{Optionally, \code{fields} a JSON string of fields to
-be returned from anywhere in the tree (dot paths notation).
+be returned from anywhere in the tree (dot paths notation), see examples.}
+}
+\value{
+Data frame with requested data, may have nested
+lists in columns
+}
+\description{
+Get documents with a filtering query
+}
+\note{
+A dot in \code{query} or \code{fields} is interpreted as a dot poth;
+it is not supported to have a dot in the key / name of a field.
 
 Main functions used per database:
 \itemize{
@@ -31,14 +43,7 @@ Main functions used per database:
 \item CouchDB: \code{\link[sofa:db_query]{sofa::db_query()}}
 \item PostgreSQL: SQL query using built-in \code{jsonb_build_object()}
 \item DuckDB: SQL using built-in \code{json_extract()}
-}}
 }
-\value{
-Data frame with requested data, may have nested
-lists in columns
-}
-\description{
-Get documents with a filtering query
 }
 \examples{
 \dontrun{
@@ -48,7 +53,7 @@ docdb_query(src, "mtcars", query = '{"mpg":21}')
 docdb_query(src, "mtcars", query = '{"mpg":21, "gear": {"$lte": 4}}')
 docdb_query(src, "mtcars", query = '{"mpg":21}', fields = '{"mpg":1, "cyl":1}')
 docdb_query(src, "mtcars", query = '{"_id": {"$regex": "^.+0.*$"}}', fields = '{"gear": 1}')
-# complex query, not supported for Elasticsearch and CouchDB backends at this time:
+# complex query, not supported for src_elastic and src_couchdb backends at this time:
 docdb_query(src, "mtcars", query = '{"$and": [{"mpg": {"$lte": 18}}, {"gear": {"$gt": 3}}]}')
 }
 }
