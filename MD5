@@ -1,8 +1,8 @@
-9ec7dd82886fc6714b606a0eb3204188 *DESCRIPTION
+0e67b056c924a076269c3a7bbbd25350 *DESCRIPTION
 98d381a5003e75fa5753032fd06892d9 *LICENSE
 40feea2c50368b4580ccbbeeb9f995cf *NAMESPACE
-63e6202004ae869f0d2b7a29cf9b33b6 *NEWS.md
-0033e7a9e0c6aafc5f465a6fc30ad5b5 *R/create.R
+5cbfea09db2168f35389ca05f5ae93ba *NEWS.md
+e4cf7e49d62082774d5a64d97a762abd *R/create.R
 bff17d0002d79f7ea063130988021617 *R/delete.R
 5a6ee14242a8aedbb035bd920840cc66 *R/exists.R
 afbee00eacbebc63c8ea7c64b34fbf9c *R/get.R
@@ -16,7 +16,7 @@ e65cb2e375eae10b41fe38ee5a9ce884 *R/src_elasticsearch.R
 f51c6e18b9b7769cef0da7713b10544a *R/src_mongo.R
 69c73825fde6c4ddee0d9a9656b3dd86 *R/src_postgres.R
 6ab58b2f8dc9e909f7c1400467e63f56 *R/src_sqlite.R
-a6ae388d7e0bcb3df1dc6fe894837573 *R/update.R
+ebc2ee1a524c19a76236d22fa5ec58ca *R/update.R
 cc23ef68aaacae3832635e769429d9b7 *R/zzz.R
 36be23b3aa8cd97dd22227f53c3b9a6c *data/diamonds.rda
 03065ed0ba3a452b4430f0ce44bfa4fb *inst/ignore/benchmarking.Rmd
@@ -36,7 +36,7 @@ d5f691fca1e488cb4eeda353527e0e24 *man/docdb_exists.Rd
 7a3cf18bc01b0f7d9adb0da36e6a13ea *man/docdb_get.Rd
 d0fac77e912ca41a781928e2b0cb29b1 *man/docdb_list.Rd
 3597e44ea1a4734fef42e5b0cab80a64 *man/docdb_query.Rd
-36565cf18605418aa237fd382eaf9e1f *man/docdb_update.Rd
+e557bed5fa61df72a6febf46888d60d3 *man/docdb_update.Rd
 d328b31b79f29c960e22f9aab11e9880 *man/mapdata.Rd
 30812f6fc03b37747a504603662d2b2b *man/nodbi-package.Rd
 7965f2a4568be6ea81bad249216a9435 *man/src.Rd
@@ -47,7 +47,7 @@ a767f9a8eab5a0ff1044bec1d27da90f *man/src_mongo.Rd
 6ae395c1237a786882adba0f748e0330 *man/src_postgres.Rd
 8a44024e277de365fcbcc7efe869c4aa *man/src_sqlite.Rd
 a01a42a892ff4805c43e535153a67eeb *tests/testthat.R
-46812662a66ef1ecf0b0af5e3391f241 *tests/testthat/core-nodbi.R
+7c9c913c0d82e2cc424991ed592c3586 *tests/testthat/core-nodbi.R
 62837cc5b704a29d4e77c6282b8edca0 *tests/testthat/helper.R
 af344dac827377a378ff8690dcc5ae1b *tests/testthat/test-couchdb.R
 3075e01c30a3debc8aad0b6540373d8e *tests/testthat/test-duckdb.R

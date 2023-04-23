@@ -1,3 +1,12 @@
+nodbi 0.9.3
+================
+
+### Changes
+* docdb_update() now can do bulk updates when _id's are in 'value' (for SQLite, DuckDB, PostgreSQL, MongoDB; not yet for CouchDB and Elastic)
+
+### BUG FIXES
+* fix tests for value parameter to be a file or an url
+
 nodbi 0.9.2
 ================
 
