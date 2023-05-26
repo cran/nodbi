@@ -1,3 +1,9 @@
+nodbi 0.9.5
+================
+
+### Changes
+* replaced a dependency, gained speed
+
 nodbi 0.9.4
 ================
 
