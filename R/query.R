@@ -1,17 +1,17 @@
-#' Get documents with a filtering query
+#' Get documents or parts with filtering query
 #'
 #' @inheritParams docdb_create
 #'
 #' @param query (character) A JSON query string, see examples.
-#'  Can use multiple comparisons / tests (e.g., '$gt', '$ne', '$in', '$regex'),
+#'  Can use comparisons / tests (e.g., '$gt', '$ne', '$in', '$regex'),
 #'  with at most one logic operator ('$and' if not specified, or '$or'),
 #'  see examples.
 #'
-#' @param ... Optionally, `fields` a JSON string of fields to
-#' be returned from anywhere in the tree (dot paths notation), see examples.
+#' @param ... Optionally, specify `fields` as a JSON string of
+#' fields to be returned from anywhere in the tree, see examples.
 #'
-#' @note A dot in `query` or `fields` is interpreted as a dot poth;
-#' it is not supported to have a dot in the key / name of a field.
+#' @note A dot in `query` or `fields` is interpreted as a dot path;
+#' it is not supported to have a dot within the key / name of a field.
 #'
 #' Main functions used per database:
 #' - MongoDB: find() in [mongolite::mongo()]
@@ -21,8 +21,9 @@
 #' - PostgreSQL: SQL query using built-in `jsonb_build_object()`
 #' - DuckDB: SQL using built-in `json_extract()`
 #'
-#' @return Data frame with requested data, may have nested
-#'  lists in columns
+#' @return Data frame with requested documents, may have nested
+#'  lists in columns. If \code{query = "{}"} and fields are not
+#'  specified, consider using [docdb_get()].
 #'
 #' @export
 #'
@@ -31,7 +32,7 @@
 #' docdb_create(src, "mtcars", mtcars)
 #' docdb_query(src, "mtcars", query = '{"mpg":21}')
 #' docdb_query(src, "mtcars", query = '{"mpg":21, "gear": {"$lte": 4}}')
-#' docdb_query(src, "mtcars", query = '{"mpg":21}', fields = '{"mpg":1, "cyl":1}')
+#' docdb_query(src, "mtcars", query = '{"mpg":21}', fields = '{"_id":0, "mpg":1, "cyl":1}')
 #' docdb_query(src, "mtcars", query = '{"_id": {"$regex": "^.+0.*$"}}', fields = '{"gear": 1}')
 #' # complex query, not supported for src_elastic and src_couchdb backends at this time:
 #' docdb_query(src, "mtcars", query = '{"$and": [{"mpg": {"$lte": 18}}, {"gear": {"$gt": 3}}]}')
@@ -635,8 +636,35 @@ docdb_query.src_duckdb <- function(src, key, query, ...) {
 
   # https://duckdb.org/docs/extensions/json#json-extraction-functions
 
-  ## construct sql query statement
-  # head of sql
+  ## construct sql and jq statements
+
+  # dispatch querSql list elements depending on query:
+  # - $and: any dot terms go into jqrSubsetFunction, rest in sqlQueryStatement
+  # - $or and any element with dot: all go into jqrSubsetFunction
+  tmp <- lapply(querySql, function(i) {
+
+    if ((attr(querySql, "op") == "OR") ||
+        (grepl("^[^'].+[.].+[^']$", gsub("[\"]", "", i[1])))) {
+      c(i, "json")
+    } else if (length(i) == 2L) {
+      i[1] <- gsub("[']", "", i[1])
+      c(i, "sql")
+    } else {
+      ""
+    }
+  })
+  attr(tmp, "op") <- attr(querySql, "op")
+  querySql <- tmp
+
+  # identify fields other than _id for jq statement
+  if (max(sapply(querySql, length)) == 3) {
+    nonidFs <- sapply(querySql, "[[", 1)[sapply(querySql, "[[", 3) == "json"]
+    nonidFs <- gsub('"', '', nonidFs)
+  } else {
+    nonidFs <- NULL
+  }
+
+  # sql SELECT
   # -1- no fields specified, get full documents
   if (length(fields) == 1L && fields == "") {
     statement <- paste0(
@@ -645,37 +673,29 @@ docdb_query.src_duckdb <- function(src, key, query, ...) {
   }
   # -2- only _id is specified
   if (length(fields) == 1L && fields == "_id") {
-    statement <- paste0(
-      "SELECT '{\"_id\": \"' || _id || '\"}' AS json FROM \"", key, "\" ")
+    # include other fields as relevant for any jq statement
+    if (!length(nonidFs)) {
+      statement <- paste0("SELECT '{\"_id\": \"' || _id || '\"}' AS json FROM \"", key, "\" ")
+    } else {
+      statement <- paste0(
+        "SELECT json_object('_id', _id, ",
+        paste0("'", nonidFs, "', json_extract(json, '$.", nonidFs, "')", collapse = ", "),
+        ") AS json FROM \"", key, "\" ")
+    }
   }
   # -3- other fields specified
   if (length(fields[fields != "_id" & fields != ""]) >= 1L) {
-    nonidFs <- c(rootFields[rootFields != "_id" & rootFields != ""],
-                 sapply(subFields, "[[", 1))
+    # include other fields as requested or relevant for any jq statement
+    nonidFs <- unique(unlist(c(
+      nonidFs,
+      rootFields[rootFields != "_id" & rootFields != ""],
+      sapply(subFields, "[[", 1)
+    )))
     statement <- paste0(
       "SELECT json_object('_id', _id, ",
       paste0("'", nonidFs, "', json_extract(json, '$.", nonidFs, "')", collapse = ", "),
       ") AS json FROM \"", key, "\" ")
   }
-
-  # dispatch querSql list elements depending on query:
-  # - $and: any dot terms go into jqrSubsetFunction, rest in sqlQueryStatement
-  # - $or and any element with dot: all go into jqrSubsetFunction
-  tmp <- lapply(querySql, function(i) {
-
-    if (#(any(sapply(querySql, function(ii) grepl("[.]", ii[1]))) &&
-        (attr(querySql, "op") == "OR") ||
-        (grepl("^[^'].+[.].+[^']$", gsub("[\"]", "", i[1])))) {
-          c(i, "json")
-        } else if (length(i) == 2L) {
-          i[1] <- gsub("[']", "", i[1])
-          c(i, "sql")
-        } else {
-          ""
-        }
-  })
-  attr(tmp, "op") <- attr(querySql, "op")
-  querySql <- tmp
 
   # sql WHERE for identifying documents
   if (querySql[[1]][1] != "") {
@@ -718,7 +738,7 @@ docdb_query.src_duckdb <- function(src, key, query, ...) {
             yes = gsub("''+", "'", paste0(
               "regexp_matches(_id, '",
               sub("^REGEXP \"?(.+?)\"?$", "\\1", x[2]), "') ")),
-            no = paste0(" _id", gsub('"', "'", x[2]), " ")
+            no = paste0(" _id ", gsub('"', "'", x[2]), " ")
           ) # ifelse
         } # _id or other field
       }))} # lapply unlist if
@@ -827,7 +847,7 @@ dbiGetProcessData <- function(
 
     # write data
     jqr::jq(
-      file(tfname, encoding = "UTF-8"),
+      file(tfname),
       jqrSubsetFunction,
       flags = jqr::jq_flags(pretty = FALSE),
       out = tjname
@@ -852,7 +872,7 @@ dbiGetProcessData <- function(
     # compose jq string, target:
     # {"_id", "friends": {"id": [."friends" | (if type != "array" then [.] else .[] end) | ."id"] }}
     # "{\"_id\", \"friends\": {\"id\":  [.\"friends\" | (if type != \"array\" then [.][] else .[] end) | .\"id\"]}}"
-    jqFields <- paste0('"', rootFields, '"', collapse = ", ")
+    jqFields <- ifelse(!length(rootFields), "", paste0('"', rootFields, '"', collapse = ", "))
     if (jqFields != "") jqFields <- paste0(jqFields, ", ", collapse = "")
     jqFields <- paste0('{', paste0(c(jqFields, paste0(
       sapply(
@@ -881,7 +901,7 @@ dbiGetProcessData <- function(
 
     # write data
     jqr::jq(
-      file(tfname, encoding = "UTF-8"),
+      file(tfname),
       jqFields,
       flags = jqr::jq_flags(pretty = FALSE),
       out = tjname
@@ -896,7 +916,7 @@ dbiGetProcessData <- function(
   } # if subFields
 
   # stream_in automatically opens and later closes (and destroys) connection
-  out <- jsonlite::stream_in(file(tfname, encoding = "UTF-8"), verbose = FALSE)
+  out <- jsonlite::stream_in(file(tfname), verbose = FALSE)
 
   # exclude any root fields with name:0 or that were not specified
   if (length(params[["fields"]])) {
@@ -915,26 +935,20 @@ dbiGetProcessData <- function(
     #
   }
 
-  # to emulate mongo behaviour eliminate columns with nulls
+  # to emulate mongo behaviour eliminate *columns* of all nulls
   # note jsonlite::stream_in turns null values into NAs
   out <- out[, seq_len(ncol(out))[!sapply(out, function(r) all(is.na(r)))], drop = FALSE]
 
   # early return
   if (identical(names(out), "_id") || nrow(out) <= 1L) return(out)
 
-  # remove rows with all NAs except in _id. iteration
-  # needed, apply cannot handle complex column content
-  allEmpty <- NULL
-  sdn <- setdiff(names(out), "_id")
-  for (r in seq_len(nrow(out))) {
-    allEmpty <- c(allEmpty, all(
-      # unlist conveniently drops NULL values
-      is.na(unlist(out[r, sdn, drop = TRUE], use.names = FALSE))))
-  }
-  if (!length(allEmpty)) allEmpty <- TRUE
+  # remove *rows* with all NAs except in _id
+  naout <- is.na(out)
+  nc <- length(setdiff(attr(naout, "dimnames")[[2]], "_id"))
 
   # return
-  return(out[!allEmpty, , drop = FALSE])
+  return(out[rowSums(naout) < nc, , drop = FALSE])
+
 }
 
 
@@ -978,7 +992,7 @@ json2fieldsSql <- function(x) {
   if (!length(x)) x <- ""
 
   # return
-  x
+  return(x)
 
 }
 # json2fieldsSql(x = '{"cut" : "1", "price": 1 }') # "cut" not returned because 1 is string
@@ -1079,6 +1093,9 @@ json2querySql <- function(x) {
 
   # add logical operation
   attr(out, "op") <- op
+
+  # debug
+  # print(out)
 
   # return
   return(out)

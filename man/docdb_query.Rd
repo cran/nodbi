@@ -2,38 +2,40 @@
 % Please edit documentation in R/query.R
 \name{docdb_query}
 \alias{docdb_query}
-\title{Get documents with a filtering query}
+\title{Get documents or parts with filtering query}
 \usage{
 docdb_query(src, key, query, ...)
 }
 \arguments{
 \item{src}{Source object, result of call to any of functions
 \code{\link[=src_mongo]{src_mongo()}}, \code{\link[=src_sqlite]{src_sqlite()}}, \code{\link[=src_elastic]{src_elastic()}}, \code{\link[=src_couchdb]{src_couchdb()}}
-or \code{\link[=src_postgres]{src_postgres()}}}
+\code{\link[=src_duckdb]{src_duckdb()}} or \code{\link[=src_postgres]{src_postgres()}}}
 
-\item{key}{(character) A key as name of the container
-(corresponds to parameter \code{collection} for MongoDB,
+\item{key}{(character) The name of the container in the
+database backend
+(corresponds to \code{collection} for MongoDB,
 \code{dbname} for CouchDB, \code{index} for Elasticsearch and to
-a table name for SQLite and for PostgreSQL)}
+a table name for DuckDb, SQLite and PostgreSQL)}
 
 \item{query}{(character) A JSON query string, see examples.
-Can use multiple comparisons / tests (e.g., '$gt', '$ne', '$in', '$regex'),
+Can use comparisons / tests (e.g., '$gt', '$ne', '$in', '$regex'),
 with at most one logic operator ('$and' if not specified, or '$or'),
 see examples.}
 
-\item{...}{Optionally, \code{fields} a JSON string of fields to
-be returned from anywhere in the tree (dot paths notation), see examples.}
+\item{...}{Optionally, specify \code{fields} as a JSON string of
+fields to be returned from anywhere in the tree, see examples.}
 }
 \value{
-Data frame with requested data, may have nested
-lists in columns
+Data frame with requested documents, may have nested
+lists in columns. If \code{query = "{}"} and fields are not
+specified, consider using \code{\link[=docdb_get]{docdb_get()}}.
 }
 \description{
-Get documents with a filtering query
+Get documents or parts with filtering query
 }
 \note{
-A dot in \code{query} or \code{fields} is interpreted as a dot poth;
-it is not supported to have a dot in the key / name of a field.
+A dot in \code{query} or \code{fields} is interpreted as a dot path;
+it is not supported to have a dot within the key / name of a field.
 
 Main functions used per database:
 \itemize{
@@ -51,7 +53,7 @@ src <- src_sqlite()
 docdb_create(src, "mtcars", mtcars)
 docdb_query(src, "mtcars", query = '{"mpg":21}')
 docdb_query(src, "mtcars", query = '{"mpg":21, "gear": {"$lte": 4}}')
-docdb_query(src, "mtcars", query = '{"mpg":21}', fields = '{"mpg":1, "cyl":1}')
+docdb_query(src, "mtcars", query = '{"mpg":21}', fields = '{"_id":0, "mpg":1, "cyl":1}')
 docdb_query(src, "mtcars", query = '{"_id": {"$regex": "^.+0.*$"}}', fields = '{"gear": 1}')
 # complex query, not supported for src_elastic and src_couchdb backends at this time:
 docdb_query(src, "mtcars", query = '{"$and": [{"mpg": {"$lte": 18}}, {"gear": {"$gt": 3}}]}')

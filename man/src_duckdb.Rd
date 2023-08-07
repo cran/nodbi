@@ -15,11 +15,22 @@ data is kept in RAM}
 
 \item{...}{Additional named parameters passed on to \code{\link[DBI:dbConnect]{DBI::dbConnect()}}}
 }
+\value{
+A \code{nodbi} source object
+}
 \description{
 Setup a DuckDB database connection
 }
 \details{
-Uses \code{\link[duckdb:duckdb]{duckdb::duckdb()}} under the hood
+Uses \code{\link[duckdb:duckdb]{duckdb::duckdb()}} as backend. \pkg{nodbi} creates or
+uses a DuckDB table, with columns \verb{_id} and \code{json} created and used
+by package \code{nodbi}, applying SQL functions as per
+\url{https://duckdb.org/docs/extensions/json} to the \code{json} column.
+Each row in the table represents a \code{JSON} document.
+Any root-level \verb{_id} is extracted from the document(s) and used for
+column \verb{_id}, otherwise a UUID is created as \verb{_id}.
+The table is indexed on \verb{_id}.
+For a benchmark, see \url{https://github.com/ropensci/nodbi#benchmark}.
 }
 \examples{
 \dontrun{

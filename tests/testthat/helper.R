@@ -61,7 +61,14 @@ testFile2 <- function(..., env = parent.frame()) {
   testFile2
 }
 
-
+if (require("webfakes", quietly = TRUE) &&
+    packageVersion("webfakes") >= package_version("1.2.0")) {
+  app <- webfakes::new_app()
+  httpbin <- webfakes::local_app_process(webfakes::httpbin_app())
+  httpbin$start()
+} else {
+  httpbin <- NULL
+}
 
 #### helper for tests ####
 
