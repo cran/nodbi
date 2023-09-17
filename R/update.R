@@ -81,7 +81,7 @@ docdb_update.src_couchdb <- function(src, key, value, query, ...) {
 
   # merge json with value
   value <- jqr::jq(paste0(
-    "[",  jqr::jq(textConnection(ndjson)),
+    "[",  jqr::jq(textConnection(ndjson), "."),
     ",", value, "]"), ' reduce .[] as $item ({}; . * $item) ')
 
   # jqr output to list
@@ -195,9 +195,9 @@ docdb_update.src_mongo <- function(src, key, value, query, ...) {
 
   # check other inputs
   if (isFile(value)) {
-    value <- jqr::jq(file(value), flags = jqr::jq_flags(pretty = FALSE))
+    value <- jqr::jq(file(value), ".", flags = jqr::jq_flags(pretty = FALSE))
   } else if (isUrl(value)) {
-    value <- jqr::jq(url(value), flags = jqr::jq_flags(pretty = FALSE))
+    value <- jqr::jq(url(value), ".", flags = jqr::jq_flags(pretty = FALSE))
   }
 
   # handle potential json string input
@@ -219,7 +219,7 @@ docdb_update.src_mongo <- function(src, key, value, query, ...) {
     row.names(value) <- NULL
     if (any(names(value) == "_id")) {
       value <- jsonlite::toJSON(value, dataframe = "rows", auto_unbox = TRUE)
-      value <- jqr::jq(value, ' .[] ')
+      value <- jqr::jq(value, " .[] ")
     } else {
       # otherwise keep as single document
       value <- jsonlite::toJSON(value, dataframe = "columns", auto_unbox = TRUE)
@@ -236,7 +236,7 @@ docdb_update.src_mongo <- function(src, key, value, query, ...) {
 
   # get doc ids to update
   # bulk update: if ids are in value, query is ignored
-  ids <- try(jqr::jq(value, ' ._id '), silent = TRUE)
+  ids <- try(jqr::jq(value, " ._id "), silent = TRUE)
   if (inherits(ids, "try-error")) ids <- NULL
   ids <- gsub("\"", "", as.character(ids))
   ids <- ids[ids != "null"]
@@ -244,7 +244,7 @@ docdb_update.src_mongo <- function(src, key, value, query, ...) {
     if (query != "") warning(
       "Ignoring the specified 'query' parameter, using _id's ",
       "found in 'value' to identify documents to be updated")
-    value <- jqr::jq(value, ' del(._id) ')
+    value <- jqr::jq(value, " del(._id) ")
     ids <- paste0('{"_id":"', ids, '"}')
   } else {
     if (length(value) > 1L) {
@@ -330,6 +330,27 @@ docdb_update.src_postgres <- function(src, key, value, query, ...) {
 #' @export
 docdb_update.src_duckdb <- function(src, key, value, query, ...) {
 
+  # use file based approach
+  if (isFile(value) && (query == "" | query == "{}")) {
+
+    statement <- paste0(
+      'UPDATE "', key, '"
+       SET json = json_merge_patch(json, injson)
+       FROM (SELECT
+        json->>\'$._id\' AS in_id,
+        json_merge_patch(json, \'{\"_id\": null}\') AS injson
+        FROM read_ndjson_objects("', value, '")
+      ) WHERE "', key, '"._id = in_id;'
+    )
+
+    result <- DBI::dbExecute(
+      conn = src$con,
+      statement = statement
+    )
+
+    return(result)
+  }
+
   # see https://duckdb.org/docs/extensions/json#json-creation-functions
   updFunction <- "json_merge_patch"
 
@@ -346,9 +367,9 @@ sqlUpdate <- function(src, key, value, query, updFunction) {
   # check other inputs
   # note value can now be a vector
   if (isFile(value)) {
-    value <- jqr::jq(file(value), flags = jqr::jq_flags(pretty = FALSE))
+    value <- jqr::jq(file(value), ".", flags = jqr::jq_flags(pretty = FALSE))
   } else if (isUrl(value)) {
-    value <- jqr::jq(url(value), flags = jqr::jq_flags(pretty = FALSE))
+    value <- jqr::jq(url(value), ".", flags = jqr::jq_flags(pretty = FALSE))
   }
 
   # handle potential json string input
@@ -369,7 +390,7 @@ sqlUpdate <- function(src, key, value, query, updFunction) {
     row.names(value) <- NULL
     if (any(names(value) == "_id")) {
       value <- jsonlite::toJSON(value, dataframe = "rows", auto_unbox = TRUE)
-      value <- jqr::jq(value, ' .[] ')
+      value <- jqr::jq(value, " .[] ")
     } else {
       # otherwise keep as single document
       value <- jsonlite::toJSON(value, dataframe = "columns", auto_unbox = TRUE)
@@ -386,15 +407,15 @@ sqlUpdate <- function(src, key, value, query, updFunction) {
 
   # get doc ids to update
   # bulk update: if ids are in value, query is ignored
-  ids <- try(jqr::jq(value, ' ._id '), silent = TRUE)
+  ids <- try(jqr::jq(value, " ._id "), silent = TRUE)
   if (inherits(ids, "try-error")) ids <- NULL
   ids <- gsub("\"", "", as.character(ids))
   ids <- ids[ids != "null"]
   if (length(ids)) {
-    if (query != "") warning(
+    if (query != "" & query != "{}") warning(
       "Ignoring the specified 'query' parameter, using _id's ",
       "found in 'value' to identify documents to be updated")
-    value <- jqr::jq(value, ' del(._id) ')
+    value <- jqr::jq(value, " del(._id) ")
   } else {
     ids <- docdb_query(src, key, query, fields = '{"_id": 1}')[["_id"]]
   }
@@ -423,14 +444,28 @@ sqlUpdate <- function(src, key, value, query, updFunction) {
     )
 
     # update data
-    result <- result + try(
-      DBI::dbWithTransaction(
-        conn = src$con,
-        code = {
-          DBI::dbExecute(
-            conn = src$con,
-            statement = statement
-          )}), silent = TRUE)
+    if (inherits(src, "src_duckdb")) {
+      result <- result + try(
+        DBI::dbExecute(
+          conn = src$con,
+          statement = statement
+        ),
+        silent = TRUE
+      )
+    } else {
+      result <- result + try(
+        DBI::dbWithTransaction(
+          conn = src$con,
+          code = {
+            DBI::dbExecute(
+              conn = src$con,
+              statement = statement
+            )
+          }
+        ),
+        silent = TRUE
+      )
+    } # if
 
   } # for
 

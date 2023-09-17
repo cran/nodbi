@@ -52,7 +52,13 @@ docdb_query.src_couchdb <- function(src, key, query, ...) {
   # TODO refactor to use jqr in analogy to function dbiGetProcessData
 
   # make dotted parameters accessible
+  limit <- 9999999L
   params <- list(...)
+  if (!is.null(params[["limit"]])) {
+    limit <- params$limit
+    params$limit <- NULL
+  }
+
   # for fields, change from MongoDB to couchdb syntax
   tmpFields <- ""
   if (length(params[["fields"]])) {
@@ -83,9 +89,9 @@ docdb_query.src_couchdb <- function(src, key, query, ...) {
   if (exists("fields", inherits = FALSE)) {
     query <- paste0(query, ", ", fields)
   }
-  # - add limit and sort
+  # - add limit
   query <- paste0(
-    '{', query, ', "limit": 999999}')
+    '{', query, ', "limit": ', limit, '}')
 
   # get data
   out <- jsonlite::fromJSON(
@@ -127,7 +133,7 @@ docdb_query.src_elastic <- function(src, key, query, ...) {
   # make dotted parameters accessible
   params <- list(...)
   if (!is.null(params[["limit"]])) limit <- params$limit
-  if (is.null(params[["limit"]])) limit <- 10000
+  if (is.null(params[["limit"]])) limit <- 10000L
   # for fields, change from MongoDB to couchdb syntax
   if (length(params[["fields"]])) {
     #
@@ -138,7 +144,7 @@ docdb_query.src_elastic <- function(src, key, query, ...) {
       if (any(grepl("[.]", fields))) message(
         "Note: return root field(s) because subfields cannot be accessed for: ",
         paste0(fields[grepl("[.]", fields)], collapse = ", "))
-      params[["source_includes"]] <- gsub("(.+?)[.].*", "\\1", fields)
+      params[["source_includes"]] <- unique(gsub("(.+?)[.].*", "\\1", fields))
     }
     #
     m <- stringi::stri_match_all_regex(params[["fields"]], '"([-@._\\w]+?)":[ ]*0')[[1]][, 2, drop = TRUE]
@@ -436,7 +442,7 @@ docdb_query.src_postgres <- function(src, key, query, ...) {
   ## special case: return all fields if listfields != NULL
   if (!is.null(params$listfields)) {
 
-    # get all fullkeys and types
+    # get keys in top-level JSON object
     fields <- DBI::dbGetQuery(
       conn = src$con,
       statement = paste0(
@@ -445,7 +451,7 @@ docdb_query.src_postgres <- function(src, key, query, ...) {
       ))[, 1, drop = TRUE]
 
     # return field names
-    return(fields)
+    return(sort(fields))
   }
 
   ## add limit if not in params
@@ -583,12 +589,12 @@ docdb_query.src_duckdb <- function(src, key, query, ...) {
     fields <- DBI::dbGetQuery(
       conn = src$con,
       statement = paste0(
-        "SELECT DISTINCT json_structure(json)",
+        "SELECT DISTINCT json_group_structure(json)",
         " FROM \"", key, "\";"
       ))[, 1, drop = TRUE]
 
     # mangle from json
-    fields <- unique(names(jsonlite::fromJSON(txt = fields)))
+    fields <- sort(unique(names(unlist(jsonlite::fromJSON(fields)))))
 
     # return field names
     return(fields)
@@ -677,6 +683,12 @@ docdb_query.src_duckdb <- function(src, key, query, ...) {
     if (!length(nonidFs)) {
       statement <- paste0("SELECT '{\"_id\": \"' || _id || '\"}' AS json FROM \"", key, "\" ")
     } else {
+      # include other fields as requested or relevant for any jq statement
+      nonidFs <- unique(unlist(c(
+        nonidFs,
+        rootFields[rootFields != "_id" & rootFields != ""],
+        sapply(subFields, "[[", 1)
+      )))
       statement <- paste0(
         "SELECT json_object('_id', _id, ",
         paste0("'", nonidFs, "', json_extract(json, '$.", nonidFs, "')", collapse = ", "),
@@ -869,7 +881,7 @@ dbiGetProcessData <- function(
       message("Note: paths seem to (partially) overlap as specified in ",
               "'fields', last will be used: ", paste0(fields, collapse = ", "))}
 
-    # compose jq string, target:
+    # compose jq script, target:
     # {"_id", "friends": {"id": [."friends" | (if type != "array" then [.] else .[] end) | ."id"] }}
     # "{\"_id\", \"friends\": {\"id\":  [.\"friends\" | (if type != \"array\" then [.][] else .[] end) | .\"id\"]}}"
     jqFields <- ifelse(!length(rootFields), "", paste0('"', rootFields, '"', collapse = ", "))
@@ -923,8 +935,7 @@ dbiGetProcessData <- function(
     # any fields that were to be included
     rM <- NULL
     m <- stringi::stri_match_all_regex(params[["fields"]], '"([-@._\\w]+?)":[ ]*1')[[1]][, 2, drop = TRUE]
-    if (!is.na(m[1])) rM <- stats::na.omit(match(
-      unique(c(fields, rootFields, unlist(subFields))), names(out)))
+    if (!is.na(m[1])) rM <- stats::na.omit(match(findColumnNames(m, out), names(out)))
     if (length(rM)) out <- out[, rM, drop = FALSE]
     # any fields that were requested to not be included
     rM <- NULL
@@ -1139,4 +1150,32 @@ fieldsSql2fullKey <- function(x) {
 
   # return
   return(x)
+}
+
+
+# map fields and subfields to columns of out
+#' @keywords internal
+#' @noRd
+findColumnNames <- function(m, out) {
+
+  assert(out, "data.frame")
+
+  namesSubItems <- lapply(
+    seq_len(ncol(out)),
+    function(s) {
+      tmp <- jqr::jq(
+        jsonlite::toJSON(out[1, s, drop = FALSE]),
+        ' [ paths | map(select(type != "number")) | select(length > 0) | join(".") ] | unique | .[] ')
+      class(tmp) <- "character"
+      tmp <- gsub('"', "", tmp)
+      unique(c(names(out)[s], tmp))
+    }
+  )
+
+  namesOut <- sapply(seq_along(namesSubItems),
+                     function(i) if (any(m %in% namesSubItems[[i]])) i)
+  namesOut <- unlist(namesOut)
+
+  return(names(out)[namesOut])
+
 }

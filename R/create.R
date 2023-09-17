@@ -183,7 +183,11 @@ docdb_create.src_elastic <- function(src, key, value, ...) {
         value <- jsonlite::stream_in(con = url(value), simplifyVector = FALSE, verbose = FALSE)
       }
     } else {
-      value <- jsonlite::fromJSON(value, simplifyVector = FALSE)
+      if (length(value) == 1L) {
+        value <- jsonlite::fromJSON(value, simplifyVector = FALSE)
+      } else {
+        value <- jsonlite::stream_in(textConnection(value), simplifyVector = FALSE, verbose = FALSE)
+      }
     }
   }
 
@@ -296,8 +300,9 @@ docdb_create.src_mongo <- function(src, key, value, ...) {
     # convert lists (incl. from previous step) to NDJSON
     if (inherits(value, "list")) {
       # add canonical _id's
-      if ((!is.null(names(value)) && !any(names(value) == "_id")) &&
-          !any(sapply(value, function(i) any(names(i) == "_id")))
+      if (((!is.null(names(value)) && !any(names(value) == "_id")) &&
+          !any(sapply(value, function(i) any(names(i) == "_id")))) ||
+          !any(names(unlist(value)) == "_id")
       ) {
         value <- lapply(value, function(i) c(
           "_id" = uuid::UUIDgenerate(use.time = TRUE), i))
@@ -394,27 +399,6 @@ docdb_create.src_sqlite <- function(src, key, value, ...) {
       value <- jsonlite::fromJSON(value)
     }
 
-    # process if value remained a list
-    if (inherits(value, "list")) {
-
-      # any _id (would be in top level of list)
-      ids <- value[["_id"]]
-      # remove _id's
-      if (length(ids)) value[["_id"]] <- NULL
-      # change back to json
-      value <- as.character(
-        jsonlite::toJSON(
-          value,
-          auto_unbox = TRUE,
-          digits = NA))
-      # construct data frame
-      value <- data.frame(
-        "_id" = ids,
-        "json" = value,
-        check.names = FALSE,
-        stringsAsFactors = FALSE
-      )
-    }
   }
 
   # data frame
@@ -530,27 +514,6 @@ docdb_create.src_postgres <- function(src, key, value, ...) {
       value <- jsonlite::fromJSON(value)
     }
 
-    # process if value remained a list
-    if (inherits(value, "list")) {
-
-      # any _id (would be in top level of list)
-      ids <- value[["_id"]]
-      # remove _id's from list
-      if (length(ids)) value[["_id"]] <- NULL
-      # change list back to json
-      value <- as.character(
-        jsonlite::toJSON(
-          value,
-          auto_unbox = TRUE,
-          digits = NA))
-      # construct data frame
-      value <- data.frame(
-        "_id" = ids,
-        "json" = value,
-        check.names = FALSE,
-        stringsAsFactors = FALSE
-      )
-    }
   }
 
   # data frame
@@ -746,22 +709,16 @@ docdb_create.src_duckdb <- function(src, key, value, ...) {
 
   # import from ndjson file
   result <- try(
-    suppressWarnings(
-      DBI::dbWithTransaction(
-        conn = src$con,
-        code = {
-          DBI::dbExecute(
-            conn = src$con,
-            statement = paste0(
-              "INSERT INTO \"", key, "\"",
-              " SELECT CASE WHEN len(json->>'$._id') > 0 THEN",
-              " json->>'$._id' ELSE format('{}', uuid()) END AS _id,",
-              " json_merge_patch(json, '{\"_id\": null}') AS json ",
-              " FROM read_ndjson_objects('",
-              value, "');"))
-        })
-    ),
-    silent = TRUE)
+    DBI::dbExecute(
+      conn = src$con,
+      statement = paste0(
+        "INSERT INTO \"", key, "\"",
+        " SELECT CASE WHEN len(json->>'$._id') > 0 THEN",
+        " json->>'$._id' ELSE format('{}', uuid()) END AS _id,",
+        " json_merge_patch(json, '{\"_id\": null}') AS json ",
+        " FROM read_ndjson_objects('",
+        value, "');")
+    ), silent = TRUE)
 
   # prepare returns
   if (inherits(result, "try-error")) {
