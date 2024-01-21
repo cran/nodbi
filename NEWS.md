@@ -1,16 +1,51 @@
+# nodbi 0.10.0
+
+## Deprecated
+* empty parameter `query` now triggers a warning as it should be a valid JSON string; change `query = ""` into `query = "{}"` 
+
+## Changes
+* adapted to use new, faster `JSONB` functions in `SQLite` 3.45.0 (`RSQLite` >= 2.3.4.9005)
+* refactored parts of `docdb_create()` to speed up handling large data frames and lists
+* made Elasticsearch to immediately refresh index after `docdb_create()` and other functions
+* `docdb_update()` now reports which records failed to update and then continues
+* `docdb_delete()` now returns harmonised success logical value across backends
+
+## Potentially breaking change
+`docdb_query()` reimplementation to have the same functionality across all databases (DuckDB, SQLite, PostgreSQL, MongoDB, Elasticsearch, CouchDB); even though the API and unit tests remained, user provisions may break e.g. to handle return values of databases that previously were incompletely implemented (in particular Elasticsearch and CouchDB). Details: 
+
+* `query` can now be complex (nested, various operators) and is digested with a Javascript helper
+* `fields` can now be nested fields (e.g., `friends.name`) to directly return values lifted from the nested field 
+* `listfields` parameter newly implemented to return dot paths for all fields of all or selected documents in collection 
+* expanded use of `jq` via `jqr` for mangling parameters, selecting documents, filtering fields and lifting nested field values
+* if no data are found, returns `NULL` (previously some backends returned an empty data frame)
+* `docdb_query(src, key, query = "{}", fields = "{}")` now delegates to `docdb_get(src, key)`
+* `_id` is always returned, unless specified with `"_id": 0` in parameter `fields`
+* for `scr_postgres`, only fewer than 50 fields if any can be specified in `fields`
+* for `src_sqlite`, minimise the use of the time-costly `json_tree`
+* workaround for path collisions of MongoDB
+* some acceleration of `docdb_query()`
+* factored out common code 
+* expanded testing
+* updated docs
+
+## Bug fixes
+
 # nodbi 0.9.8
 
+## Bug fixes
 * escaping newline character within a JSON value, in `docdb_*()` functions
 
 # nodbi 0.9.7
 
-* changed `docdb_update()` to directly use ndjson from file for duckdb
+## Changes
+* changed `docdb_update()` to directly use NDJSON from file for duckdb
+* cleaned up unnecessary code in `docdb_create()`
+* no more using transactions with `src_duckdb()`
+
+## Bug fixes
 * regression error from not specifying top-level jq script
 * corrected and improve field selection in `docdb_query()`
 * corrected test exceptions for mongodb, updated GitHub Actions, expanded tests
-* changed `docdb_update()` to directly use ndjson from file for duckdb
-* cleaned up unnecessary code in `docdb_create()`
-* no more using transactions with `src_duckdb()`
 
 # nodbi 0.9.6
 
