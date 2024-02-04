@@ -1,14 +1,14 @@
-2ea99e62f4082abadda3256debac972a *DESCRIPTION
+4450f79e8ec759bf2462723f97054e87 *DESCRIPTION
 98d381a5003e75fa5753032fd06892d9 *LICENSE
 1e0461afce0a91310f4590c6e58984c0 *NAMESPACE
-0c3f8a877ae03d4791126473410c31d7 *NEWS.md
+3bd864313a28cb1433928db011642394 *NEWS.md
 4b4fc6c5ec2e3b2e4938f511509de6f4 *R/create.R
 f37efa814bd2d30d5f8ca13ae43d8eec *R/delete.R
 17dcb2a49ad535adcdd79a77a7c58d5b *R/exists.R
-73528c75f1d6b0b663c88544720dad38 *R/get.R
+ac71b4f4ccbe963eabd0c1e8f65054c6 *R/get.R
 874e9104168fdde959c0983a58e3fe5c *R/list.R
 bbddb6aede4af0a93686f4a2897fa18a *R/nodbi-package.R
-f04812aa0391edafeadf56373a7374ac *R/query.R
+5fdaefe3c6afdf18c68ed986292594b5 *R/query.R
 e6e6bab52d40adecf3a4d48c477e2d23 *R/src.R
 5127da1c42cba3e47a96dd7e2bf85cd2 *R/src_couchdb.R
 990ce9bad45fe37fb62d27e25138c785 *R/src_duckdb.R
@@ -51,7 +51,7 @@ a398f5c37a0e29d1933495ce419e6387 *man/src_elastic.Rd
 a5b76cfa12f24b9e2f831307fa467d1c *man/src_postgres.Rd
 17776958c31286a3ab2fd6b1556c5cef *man/src_sqlite.Rd
 a01a42a892ff4805c43e535153a67eeb *tests/testthat.R
-77f001a590894535c264568688b7fec9 *tests/testthat/core-nodbi.R
+1d497d65921fd9806642eab0f1536d0e *tests/testthat/core-nodbi.R
 b57b3677df3f4381837a385e1c9064ad *tests/testthat/helper.R
 af344dac827377a378ff8690dcc5ae1b *tests/testthat/test-couchdb.R
 3075e01c30a3debc8aad0b6540373d8e *tests/testthat/test-duckdb.R

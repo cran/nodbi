@@ -1,3 +1,8 @@
+# nodbi 0.10.1
+
+## Bug fix
+* make `docdb_get()` work again for `src_sqlite()` by casting `JSONB` back to `JSON`
+
 # nodbi 0.10.0
 
 ## Deprecated
