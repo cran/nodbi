@@ -1,11 +1,14 @@
 # nodbi helper functions
 
-
+#### variables ####
 
 # provide private environment,
 # e.g. for initTransformers()
 #
 .nodbi <- new.env()
+
+# jq script for extracting field names
+jqFieldNames <- '[ path(..) | map(select(type == "string")) | join(".") ] | unique[] '
 
 
 
@@ -129,7 +132,7 @@ closeNodbiConnections <- function(e) {
   )
 
   # load javascript
-  initTranformers()
+  initTransformers()
 
 }
 
@@ -150,7 +153,7 @@ closeNodbiConnections <- function(e) {
 
 
 
-#' initTranformers
+#' initTransformers
 #'
 #' provide access to javascript functions and modules
 #' stored in inst/js or subdir js of installed package
@@ -163,7 +166,7 @@ closeNodbiConnections <- function(e) {
 #' @keywords internal
 #' @noRd
 #'
-initTranformers <- function() {
+initTransformers <- function() {
 
   # early exit
   if (length(.nodbi)) return(NULL)
@@ -204,11 +207,14 @@ initTranformers <- function() {
 #' @keywords internal
 #' @noRd
 #'
-digestFields <- function(f = "", q = "") {
+digestFields <- function(f, q) {
 
+  # check parameter
+  if (is.null(f)) f <- "{}"
+  f <- jsonlite::minify(f)
 
   # translate q into SQL query syntax using mongo2sql
-  initTranformers()
+  initTransformers()
 
   # - used:
   # $gt, $gte, $lt, $lte, $ne
@@ -281,16 +287,6 @@ digestFields <- function(f = "", q = "") {
     f, '"([-@._\\w]+?)":[ ]*0')[[1]][, 2, drop = TRUE]))
 
   fieldStrings <- unique(c(includeFields, excludeFields))
-
-  # helper function to use a strsplit list and compare for
-  # each list item if the vector positions p are all equal
-  allEqualAtPos <- function(l, p) {
-
-    o <- unlist(sapply(l, function(i) if (length(i) >= p) i[p] else NULL))
-    if (is.null(o)) return(FALSE)
-    return(as.logical(table(o)[[1]] == length(l)))
-
-  }
 
   # translate mongo query into jq script to filter and select:
 

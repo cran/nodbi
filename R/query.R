@@ -78,10 +78,6 @@ docdb_query <- function(src, key, query, ...) {
     warning('query = "" is deprecated, use query = "{}"')
     query <- "{}"
   }
-  stopifnot(jsonlite::validate(query))
-
-  # jq script for extracting field names
-  jqFieldNames <- '[ path(..) | map(select(type == "string")) | join(".") ] | unique[] '
 
   # query can be empty but then fields should not be empty
   if (jsonlite::minify(query) == '{}') {
@@ -121,22 +117,18 @@ docdb_query.src_couchdb <- function(src, key, query, ...) {
 
   # https://cran.r-project.org/web/packages/sofa/vignettes/query_tutorial.html
 
-  # handle dotted parameters
+  # handle parameters
+  if (query == "") query <- "{}"
+  query <- jsonlite::minify(query)
   params <- list(...)
   limit <- 9999999L
-  if (!is.null(params[["limit"]])) {
+  if (!is.null(params$limit)) {
     limit <- params$limit
     params$limit <- NULL
   }
 
-  # check parameters
-  fields <- '{}'
-  if (!is.null(params[["fields"]])) fields <- params[["fields"]]
-  stopifnot(jsonlite::validate(fields))
-  query <- jsonlite::minify(query)
-
   # digest and mangle
-  fldQ <- digestFields(f = fields, q = query)
+  fldQ <- digestFields(f = params$fields, q = query)
 
 
   # mangle query
@@ -265,23 +257,18 @@ docdb_query.src_elastic <- function(src, key, query, ...) {
 
   # https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html
 
-  # make dotted parameters accessible
-  limit <- 10000L # see help(Search)
+  # handle parameters
+  if (query == "") query <- "{}"
+  query <- jsonlite::minify(query)
   params <- list(...)
+  limit <- 10000L # see help(Search)
   if (!is.null(params[["limit"]])) {
     limit <- params$limit
     params$limit <- NULL
   }
 
-  # check parameters
-  fields <- '{}'
-  if (!is.null(params[["fields"]])) fields <- params[["fields"]]
-  stopifnot(jsonlite::validate(fields))
-  query <- jsonlite::minify(query)
-
-
   # digest and mangle
-  fldQ <- digestFields(f = fields, q = query)
+  fldQ <- digestFields(f = params$fields, q = query)
 
 
   # query
@@ -428,22 +415,18 @@ docdb_query.src_mongo <- function(src, key, query, ...) {
   chkSrcMongo(src, key)
 
 
-  # query
+  # handle parameters
+  if (query == "") query <- "{}"
   query <- jsonlite::minify(query)
-
-
-  # make dotted parameters accessible
   params <- list(...)
-
-
-  # add limit if not in params
   n <- 0L
   if (!is.null(params$limit)) n <- params$limit
+  # - necessary since params is passed to mongo$find
+  if (is.null(params$fields)) params$fields <- "{}"
 
 
   # canonical sorting in nodbi
-  if (!length(params[["sort"]])) params[["sort"]] <- '{"_id": 1}'
-  if (!length(params[["fields"]])) params[["fields"]] <- '{}'
+  if (!length(params$sort)) params$sort <- '{"_id": 1}'
 
 
   # if regexp query lacks options, add them in
@@ -452,7 +435,7 @@ docdb_query.src_mongo <- function(src, key, query, ...) {
 
 
   # digest and mangle
-  fldQ <- digestFields(f = params[["fields"]], q = query)
+  fldQ <- digestFields(f = params$fields, q = query)
 
 
   # query
@@ -494,7 +477,7 @@ docdb_query.src_mongo <- function(src, key, query, ...) {
   if (any(duplicated(unlist(
     strsplit(fldQ$includeFields, ".", fixed = TRUE))))) {
     params[["fields"]] <- paste0(
-      '{', paste0('"', fldQ$includeRootFields, '": 1', collapse = ", "), "}")
+      '{', paste0('"', fldQ$includeRootFields, '":1', collapse = ","), "}")
   }
 
 
@@ -570,12 +553,17 @@ docdb_query.src_mongo <- function(src, key, query, ...) {
 
   # - early return
   if (!any(grepl("[.]", fldQ$includeFields)) &&
-      !length(fldQ$excludeFields)) return(
-        do.call(
-          src$con$find,
-          c(list(query = query), params))
-      )
+      !length(fldQ$excludeFields)) {
 
+    # cannot use src$con$find because
+    # fields may have been specified
+    tmp <- do.call(
+      src$con$find,
+      c(list(query = query), params))
+
+    if (!nrow(tmp)) return(NULL)
+    return(tmp)
+  }
 
   # - jq to extract fields and subfields
   tfname <- tempfile()
@@ -637,26 +625,16 @@ docdb_query.src_mongo <- function(src, key, query, ...) {
 docdb_query.src_sqlite <- function(src, key, query, ...) {
 
 
-  # make dotted parameters accessible
-  params <- list(...)
-
-
-  # query
+  # handle parameters
+  if (query == "") query <- "{}"
   query <- jsonlite::minify(query)
-
-
-  # add limit if not in params
+  params <- list(...)
   n <- -1L
   if (!is.null(params$limit)) n <- params$limit
 
 
-  # add fields if not in params
-  fields <- "{}"
-  if (!is.null(params$fields)) fields <- jsonlite::minify(params$fields)
-
-
   # digest
-  fldQ <- digestFields(f = fields, q = query)
+  fldQ <- digestFields(f = params$fields, q = query)
 
 
   # early return if only _id is requested
@@ -855,26 +833,16 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
 docdb_query.src_postgres <- function(src, key, query, ...) {
 
 
-  # make dotted parameters accessible
+  # handle parameters
+  if (query == "") query <- "{}"
+  query <- jsonlite::minify(query)
   params <- list(...)
-
-
-  # add limit if not in params
   n <- -1L
   if (!is.null(params$limit)) n <- as.integer(params$limit)
 
 
-  # add fields if not in params
-  fields <- "{}"
-  if (!is.null(params$fields)) fields <- jsonlite::minify(params$fields)
-
-
-  # query
-  query <- jsonlite::minify(query)
-
-
   # digest
-  fldQ <- digestFields(f = fields, q = query)
+  fldQ <- digestFields(f = params$fields, q = query)
 
 
   # - early return if only _id is requested
@@ -1097,26 +1065,16 @@ docdb_query.src_postgres <- function(src, key, query, ...) {
 docdb_query.src_duckdb <- function(src, key, query, ...) {
 
 
-  # make dotted parameters accessible
+  # handle parameters
+  if (query == "") query <- "{}"
+  query <- jsonlite::minify(query)
   params <- list(...)
-
-
-  # add limit if not in params
   n <- -1L
   if (!is.null(params$limit)) n <- params$limit
 
 
-  # query
-  query <- jsonlite::minify(query)
-
-
-  # add fields if not in params
-  fields <- "{}"
-  if (!is.null(params$fields)) fields <- params$fields
-
-
   # digest and mangle
-  fldQ <- digestFields(f = fields, q = query)
+  fldQ <- digestFields(f = params$fields, q = query)
 
 
   # - early return if only _id is requested
@@ -1560,7 +1518,7 @@ processIncludeFields <- function(
 
   } else {
 
-    # postgres
+    # needed for postgres
 
     if (setequal(includeFields, extractedFields)) {
 

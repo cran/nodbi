@@ -1,3 +1,18 @@
+# nodbi 0.10.2
+
+## Changes
+* added vignette
+* added tests internal functions, verbose option
+* added caching to GitHub action workflow
+* added missing fields validity check for duckdb
+* more robust parameter checks in `docdb_query` and `docdb_update`
+* ensure `NULL` also for all MongoDB returns
+
+## Bug fix
+* docTyp'ed src.R
+* minify `JSON` with Elasticsearch in `docdb_update`
+* moved local variable out of UseMethod in `docdb_query`
+
 # nodbi 0.10.1
 
 ## Bug fix
@@ -32,8 +47,6 @@
 * factored out common code 
 * expanded testing
 * updated docs
-
-## Bug fixes
 
 # nodbi 0.9.8
 
