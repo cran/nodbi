@@ -60,7 +60,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -469,16 +469,16 @@ created.</p>
 <span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; # A tibble: 137 × 31</span></span>
 <span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;    `_id`             url   args  headers$Host origin    id destination_addresses</span></span>
 <span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;             &lt;chr&gt; &lt;df[&gt; &lt;chr&gt;        &lt;chr&gt;  &lt;int&gt; &lt;list&gt;               </span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;  1 3635d59c-d35e-11… http…       httpbin.org  143.1…     0 &lt;NULL&gt;               </span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;  2 3635d5ba-d35e-11… http…       httpbin.org  143.1…     1 &lt;NULL&gt;               </span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;  3 3635d5c4-d35e-11… http…       httpbin.org  143.1…     2 &lt;NULL&gt;               </span></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  4 3635d5c5-d35e-11… http…       httpbin.org  143.1…     3 &lt;NULL&gt;               </span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;  5 3635d5ce-d35e-11… http…       httpbin.org  143.1…     4 &lt;NULL&gt;               </span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt;  6 3635d5cf-d35e-11… http…       httpbin.org  143.1…     5 &lt;NULL&gt;               </span></span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt;  7 3635d5d8-d35e-11… http…       httpbin.org  143.1…     6 &lt;NULL&gt;               </span></span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt;  8 3635d5e2-d35e-11… http…       httpbin.org  143.1…     7 &lt;NULL&gt;               </span></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt;  9 3635d5e3-d35e-11… http…       httpbin.org  143.1…     8 &lt;NULL&gt;               </span></span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; 10 3635d5ec-d35e-11… http…       httpbin.org  143.1…     9 &lt;NULL&gt;               </span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;  1 3bfb4c38-d993-11… http…       httpbin.org  143.1…     0 &lt;NULL&gt;               </span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;  2 3bfb4c4c-d993-11… http…       httpbin.org  143.1…     1 &lt;NULL&gt;               </span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;  3 3bfb4c56-d993-11… http…       httpbin.org  143.1…     2 &lt;NULL&gt;               </span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  4 3bfb4c57-d993-11… http…       httpbin.org  143.1…     3 &lt;NULL&gt;               </span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;  5 3bfb4c60-d993-11… http…       httpbin.org  143.1…     4 &lt;NULL&gt;               </span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt;  6 3bfb4c61-d993-11… http…       httpbin.org  143.1…     5 &lt;NULL&gt;               </span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt;  7 3bfb4c6a-d993-11… http…       httpbin.org  143.1…     6 &lt;NULL&gt;               </span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt;  8 3bfb4c6b-d993-11… http…       httpbin.org  143.1…     7 &lt;NULL&gt;               </span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt;  9 3bfb4c74-d993-11… http…       httpbin.org  143.1…     8 &lt;NULL&gt;               </span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; 10 3bfb4c75-d993-11… http…       httpbin.org  143.1…     9 &lt;NULL&gt;               </span></span>
 <span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; # ℹ 127 more rows</span></span>
 <span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; # ℹ 27 more variables: headers$`X-Amzn-Trace-Id` &lt;chr&gt;, $`User-Agent` &lt;chr&gt;,</span></span>
 <span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; #   $Accept &lt;chr&gt;, origin_addresses &lt;list&gt;, rows &lt;list&gt;, status &lt;chr&gt;,</span></span>
@@ -493,8 +493,8 @@ created.</p>
 <span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 6</span></span>
 <span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt;   `_id`                                url       args  headers$Host origin    id</span></span>
 <span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                                &lt;chr&gt;     &lt;df[&gt; &lt;chr&gt;        &lt;chr&gt;  &lt;int&gt;</span></span>
-<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt; 1 3635d59c-d35e-11ee-804f-acbc328130bb https://…       httpbin.org  143.1…     0</span></span>
-<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="co">#&gt; 2 3635d5ba-d35e-11ee-804f-acbc328130bb https://…       httpbin.org  143.1…     1</span></span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt; 1 3bfb4c38-d993-11ee-ba4e-acbc328130bb https://…       httpbin.org  143.1…     0</span></span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="co">#&gt; 2 3bfb4c4c-d993-11ee-ba4e-acbc328130bb https://…       httpbin.org  143.1…     1</span></span>
 <span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a><span class="co">#&gt; # ℹ 3 more variables: headers$`X-Amzn-Trace-Id` &lt;chr&gt;, $`User-Agent` &lt;chr&gt;,</span></span>
 <span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a><span class="co">#&gt; #   $Accept &lt;chr&gt;</span></span></code></pre></div>
 </div>
@@ -571,16 +571,16 @@ the function returns only the comprehensive list of all field names in
 documents selected with a query (or in all documents in the container if
 <code>query = &quot;{}&quot;</code> is specified).</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">docdb_query</span>(src, key, <span class="at">query =</span> <span class="st">&#39;{&quot;_id&quot;: {&quot;$regex&quot;: &quot;^[0-9]&quot;}}&#39;</span>, <span class="at">listfields =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;about&quot;                            &quot;age&quot;                             </span></span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&gt;  [3] &quot;args&quot;                             &quot;balance&quot;                         </span></span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&gt;  [5] &quot;destination_addresses&quot;            &quot;email&quot;                           </span></span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt;  [7] &quot;eyeColor&quot;                         &quot;friends&quot;                         </span></span>
-<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt;  [9] &quot;friends.id&quot;                       &quot;friends.name&quot;                    </span></span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt; [11] &quot;headers&quot;                          &quot;headers.Accept&quot;                  </span></span>
-<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&gt; [13] &quot;headers.Host&quot;                     &quot;headers.User-Agent&quot;              </span></span>
-<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co">#&gt; [15] &quot;headers.X-Amzn-Trace-Id&quot;          &quot;id&quot;                              </span></span>
-<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co">#&gt; [17] &quot;isActive&quot;                         &quot;name&quot;                            </span></span>
-<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt; [19] &quot;origin&quot;                           &quot;origin_addresses&quot;                </span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;\&quot;destination_addresses\&quot;&quot;        &quot;\&quot;origin_addresses\&quot;&quot;            </span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&gt;  [3] &quot;about&quot;                            &quot;age&quot;                             </span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&gt;  [5] &quot;args&quot;                             &quot;balance&quot;                         </span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt;  [7] &quot;email&quot;                            &quot;eyeColor&quot;                        </span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt;  [9] &quot;friends&quot;                          &quot;friends.id&quot;                      </span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt; [11] &quot;friends.name&quot;                     &quot;headers&quot;                         </span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&gt; [13] &quot;headers.\&quot;User-Agent\&quot;&quot;           &quot;headers.\&quot;X-Amzn-Trace-Id\&quot;&quot;     </span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co">#&gt; [15] &quot;headers.Accept&quot;                   &quot;headers.Host&quot;                    </span></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co">#&gt; [17] &quot;id&quot;                               &quot;isActive&quot;                        </span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt; [19] &quot;name&quot;                             &quot;origin&quot;                          </span></span>
 <span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt; [21] &quot;registered&quot;                       &quot;rows&quot;                            </span></span>
 <span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt; [23] &quot;rows.elements&quot;                    &quot;rows.elements.distance&quot;          </span></span>
 <span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt; [25] &quot;rows.elements.distance.somevalue&quot; &quot;rows.elements.distance.text&quot;     </span></span>
