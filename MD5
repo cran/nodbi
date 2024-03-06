@@ -1,14 +1,14 @@
-d7e270d03dbe97b855ee97cd0e401f03 *DESCRIPTION
+b498ffa13d74cc1e369f5055ce9d8311 *DESCRIPTION
 98d381a5003e75fa5753032fd06892d9 *LICENSE
 1e0461afce0a91310f4590c6e58984c0 *NAMESPACE
-964b1dcfa6d698c26c4a24e9a2560bd3 *NEWS.md
+1d0cda6d9064aa513af28725e09e6a39 *NEWS.md
 74bb5f2577e566b69a95ebb5e00d1f6b *R/create.R
 f37efa814bd2d30d5f8ca13ae43d8eec *R/delete.R
 17dcb2a49ad535adcdd79a77a7c58d5b *R/exists.R
 219a4b3cfcf8de8e54f7ff82fa330f94 *R/get.R
 874e9104168fdde959c0983a58e3fe5c *R/list.R
 bbddb6aede4af0a93686f4a2897fa18a *R/nodbi-package.R
-40a6381d6c1f7d4003cabdd7f6492cc7 *R/query.R
+530b71ca1c87f61a64e5c5f5d85a94d4 *R/query.R
 4388aa109addb53fd6313762ca7f3cfa *R/src.R
 5127da1c42cba3e47a96dd7e2bf85cd2 *R/src_couchdb.R
 990ce9bad45fe37fb62d27e25138c785 *R/src_duckdb.R
@@ -23,7 +23,7 @@ e649ec0904f2b8fbce7b915c9589badb *R/src_postgres.R
 be4cbd41d2c7a77be4a92a9f86c0d951 *inst/WORDLIST
 23550666a8b145b2199293a5ed115ea6 *inst/doc/nodbi-overview.R
 7b51c0fdd9b6d963a26db642ea630669 *inst/doc/nodbi-overview.Rmd
-c8881fec7b3f759356aa9ddaaa311236 *inst/doc/nodbi-overview.html
+12b150eb89f04469f8d72accb75faf5c *inst/doc/nodbi-overview.html
 03065ed0ba3a452b4430f0ce44bfa4fb *inst/ignore/benchmarking.Rmd
 9ae04769045b27a3f38cc79d77e007e2 *inst/ignore/benchmarking.md
 89fad7e968f9be4149a607254f974f22 *inst/ignore/cleanup.R
