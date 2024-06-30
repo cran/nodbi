@@ -1,7 +1,7 @@
 ## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
-collapse = TRUE,
-comment = "#>"
+  collapse = TRUE,
+  comment = "#>"
 )
 
 ## ----setup--------------------------------------------------------------------
@@ -19,8 +19,9 @@ if (FALSE) {
   src <- src_postgres()
   src <- src_elastic()
   src <- src_couchdb(
-    user = Sys.getenv("COUCHDB_TEST_USER"), 
-    pwd = Sys.getenv("COUCHDB_TEST_PWD"))
+    user = Sys.getenv("COUCHDB_TEST_USER"),
+    pwd = Sys.getenv("COUCHDB_TEST_PWD")
+  )
 }
 
 # this example is run with
@@ -34,7 +35,7 @@ help("src_mongo")
 # check if container already exists
 docdb_exists(src = src, key = key)
 
-# load data from a data frame with row names into 
+# load data from a data frame with row names into
 # the container specified in "key" parameter
 docdb_create(src = src, key = key, value = mtcars)
 
@@ -45,7 +46,7 @@ docdb_create(src, key, "https://httpbin.org/stream/98")
 docdb_create(src, key, jsonlite::fromJSON(mapdata, simplifyVector = FALSE))
 
 # show JSON structure of contacts
-jsonlite::minify(contacts) 
+jsonlite::minify(contacts)
 
 # load additionally contacts JSON data
 docdb_create(src, key, contacts)
@@ -58,7 +59,7 @@ docdb_list(src = src)
 docdb_create(src, key, value = mtcars)
 
 ## -----------------------------------------------------------------------------
-# load library for more 
+# load library for more
 # readable print output
 library(tibble)
 
@@ -74,7 +75,7 @@ as_tibble(docdb_get(src, key, limit = 2L))
 docdb_query(src = src, key = key, query = '{"mpg": {"$gte": 30}}')
 
 ## -----------------------------------------------------------------------------
-# query some fields from some documents; 'query' is a mandatory 
+# query some fields from some documents; 'query' is a mandatory
 # parameter and is used here in its position in the signature
 docdb_query(src, key, '{"mpg": {"$gte": 30}}', fields = '{"wt": 1, "mpg": 1}')
 
@@ -85,17 +86,19 @@ docdb_query(src, key, '{"mpg": {"$gte": 30}}', fields = '{"_id": 0, "mpg": 1}', 
 ## -----------------------------------------------------------------------------
 # query some subitem fields from some documents
 str(docdb_query(
-  src, key, 
-  query = '{"$or": [{"age": {"$gt": 21}}, 
-           {"friends.name": {"$regex": "^B[a-z]{3,9}.*"}}]}', 
-  fields = '{"age": 1, "friends.name": 1}'))
+  src, key,
+  query = '{"$or": [{"age": {"$gt": 21}},
+           {"friends.name": {"$regex": "^B[a-z]{3,9}.*"}}]}',
+  fields = '{"age": 1, "friends.name": 1}'
+))
 
 ## -----------------------------------------------------------------------------
 # query with results across documents
 docdb_query(
-  src, key, 
-  query = '{"$or": [{"age": {"$gt": 21}}, {"mpg": {"$gte": 30}}]}', 
-  fields = '{"name": 1, "disp": 1}')
+  src, key,
+  query = '{"$or": [{"age": {"$gt": 21}}, {"mpg": {"$gte": 30}}]}',
+  fields = '{"name": 1, "disp": 1}'
+)
 
 ## -----------------------------------------------------------------------------
 docdb_query(src, key, query = '{"_id": {"$regex": "^[0-9]"}}', listfields = TRUE)
@@ -103,14 +106,14 @@ docdb_query(src, key, query = '{"_id": {"$regex": "^[0-9]"}}', listfields = TRUE
 ## -----------------------------------------------------------------------------
 # number of documents corresponding to query
 nrow(docdb_query(src, key, query = '{"carb": 3}'))
- 
+
 # update all documents using JSON, replacing the previously existing values
 docdb_update(src, key, value = '{"vs": 9, "xy": [1, 2]}', query = '{"carb": 3}')
 
 # update with value that includes _id's
-docdb_update(src, key, value = '{"_id": "Merc 450SLC", "xy": 33}', query = '{}')
+docdb_update(src, key, value = '{"_id": "Merc 450SLC", "xy": 33}', query = "{}")
 
-# show updated values 
+# show updated values
 docdb_query(src, key, query = '{"carb": 3}', fields = '{"xy": 1}')
 
 ## -----------------------------------------------------------------------------
@@ -130,5 +133,6 @@ docdb_exists(src, key)
 src
 
 # shutdown
-DBI::dbDisconnect(src$con, shutdown = TRUE); rm(src)
+DBI::dbDisconnect(src$con, shutdown = TRUE)
+rm(src)
 

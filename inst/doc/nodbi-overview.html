@@ -381,16 +381,17 @@ holds the name of the relevant container.</p>
 <span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  src <span class="ot">&lt;-</span> <span class="fu">src_postgres</span>()</span>
 <span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  src <span class="ot">&lt;-</span> <span class="fu">src_elastic</span>()</span>
 <span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  src <span class="ot">&lt;-</span> <span class="fu">src_couchdb</span>(</span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>    <span class="at">user =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;COUCHDB_TEST_USER&quot;</span>), </span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>    <span class="at">pwd =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;COUCHDB_TEST_PWD&quot;</span>))</span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>}</span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co"># this example is run with</span></span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>src <span class="ot">&lt;-</span> <span class="fu">src_sqlite</span>()</span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co"># note additional parameters can be specified,</span></span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co"># for example for local or remote MongoDb:</span></span>
-<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="fu">help</span>(<span class="st">&quot;src_mongo&quot;</span>)</span></code></pre></div>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>    <span class="at">user =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;COUCHDB_TEST_USER&quot;</span>),</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>    <span class="at">pwd =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;COUCHDB_TEST_PWD&quot;</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>  )</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>}</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co"># this example is run with</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>src <span class="ot">&lt;-</span> <span class="fu">src_sqlite</span>()</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co"># note additional parameters can be specified,</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co"># for example for local or remote MongoDb:</span></span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="fu">help</span>(<span class="st">&quot;src_mongo&quot;</span>)</span></code></pre></div>
 </div>
 <div id="docdb_create" class="section level3">
 <h3>docdb_create</h3>
@@ -405,34 +406,34 @@ can take a data frame, a list, a JSON string, or a file name or URL
 pointing to <code>NDJSON</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># check if container already exists</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">docdb_exists</span>(<span class="at">src =</span> src, <span class="at">key =</span> key)</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; [1] FALSE</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co"># load data from a data frame with row names into </span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co"># the container specified in &quot;key&quot; parameter</span></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="fu">docdb_create</span>(<span class="at">src =</span> src, <span class="at">key =</span> key, <span class="at">value =</span> mtcars)</span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; [1] 32</span></span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co"># load additionally 98 NDJSON records</span></span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="fu">docdb_create</span>(src, key, <span class="st">&quot;https://httpbin.org/stream/98&quot;</span>)</span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; Note: container &#39;my_container&#39; already exists</span></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; [1] 98</span></span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a></span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co"># load additionally mapdata as list</span></span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="fu">docdb_create</span>(src, key, jsonlite<span class="sc">::</span><span class="fu">fromJSON</span>(mapdata, <span class="at">simplifyVector =</span> <span class="cn">FALSE</span>))</span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; Note: container &#39;my_container&#39; already exists</span></span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; [1] 2</span></span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a></span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co"># show JSON structure of contacts</span></span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>jsonlite<span class="sc">::</span><span class="fu">minify</span>(contacts) </span>
-<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; [{&quot;_id&quot;:&quot;5cd67853f841025e65ce0ce2&quot;,&quot;isActive&quot;:false,&quot;balance&quot;:&quot;$3,808.45&quot;,&quot;age&quot;:23,&quot;eyeColor&quot;:&quot;green&quot;,&quot;name&quot;:&quot;Lacy Chen&quot;,&quot;email&quot;:&quot;lacychen@conjurica.com&quot;,&quot;about&quot;:&quot;Sunt consequat ad dolore.\nExercitation nisi reprehenderit.&quot;,&quot;registered&quot;:&quot;2014-08-03T12:11:54 -02:00&quot;,&quot;tags&quot;:[&quot;nulla&quot;,&quot;nisi&quot;,&quot;adipisicing&quot;,&quot;do&quot;,&quot;ad&quot;,&quot;ullamco&quot;,&quot;irure&quot;],&quot;friends&quot;:[{&quot;id&quot;:0,&quot;name&quot;:&quot;Wooten Goodwin&quot;},{&quot;id&quot;:1,&quot;name&quot;:&quot;Brandie Woodward&quot;},{&quot;id&quot;:2,&quot;name&quot;:&quot;Angelique Britt&quot;}]},{&quot;_id&quot;:&quot;5cd678531b423d5f04cfb0a1&quot;,&quot;isActive&quot;:false,&quot;balance&quot;:&quot;$3,400.50&quot;,&quot;age&quot;:20,&quot;eyeColor&quot;:&quot;brown&quot;,&quot;name&quot;:&quot;Rae Colon&quot;,&quot;email&quot;:&quot;raecolon@conjurica.com&quot;,&quot;about&quot;:&quot;Nisi excepteur duis duis aliquip qui id consequat consequat.&quot;,&quot;registered&quot;:&quot;2018-12-19T06:23:35 -01:00&quot;,&quot;tags&quot;:[&quot;nostrud&quot;,&quot;eu&quot;,&quot;consectetur&quot;,&quot;adipisicing&quot;,&quot;labore&quot;,&quot;ut&quot;,&quot;voluptate&quot;],&quot;friends&quot;:[{&quot;id&quot;:0,&quot;name&quot;:&quot;Yang Yates&quot;},{&quot;id&quot;:1,&quot;name&quot;:&quot;Lacy Chen&quot;}]},{&quot;_id&quot;:&quot;5cd6785335b63cb19dfa8347&quot;,&quot;isActive&quot;:false,&quot;balance&quot;:&quot;$2,579.09&quot;,&quot;age&quot;:30,&quot;eyeColor&quot;:&quot;brown&quot;,&quot;name&quot;:&quot;Williamson French&quot;,&quot;email&quot;:&quot;williamsonfrench@conjurica.com&quot;,&quot;about&quot;:&quot;Nulla do sunt consectetur officia. Laboris pariatur incididunt.&quot;,&quot;registered&quot;:&quot;2018-02-14T10:59:57 -01:00&quot;,&quot;tags&quot;:[&quot;exercitation&quot;,&quot;do&quot;,&quot;magna&quot;,&quot;ut&quot;,&quot;consectetur&quot;,&quot;ex&quot;,&quot;incididunt&quot;],&quot;friends&quot;:[{&quot;id&quot;:0,&quot;name&quot;:&quot;Coleen Dunn&quot;},{&quot;id&quot;:1,&quot;name&quot;:&quot;Doris Phillips&quot;},{&quot;id&quot;:2,&quot;name&quot;:&quot;Concetta Turner&quot;}]},{&quot;_id&quot;:&quot;5cd6785325ce3a94dfc54096&quot;,&quot;isActive&quot;:true,&quot;balance&quot;:&quot;$1,161.52&quot;,&quot;age&quot;:22,&quot;eyeColor&quot;:&quot;brown&quot;,&quot;name&quot;:&quot;Pace Bell&quot;,&quot;email&quot;:&quot;pacebell@conjurica.com&quot;,&quot;about&quot;:&quot;Eiusmod sunt laborum ipsum do cupidatat qui id dolore do.&quot;,&quot;registered&quot;:&quot;2018-08-17T12:23:42 -02:00&quot;,&quot;tags&quot;:[&quot;aliqua&quot;,&quot;consectetur&quot;,&quot;commodo&quot;,&quot;velit&quot;,&quot;cupidatat&quot;,&quot;duis&quot;,&quot;dolore&quot;],&quot;friends&quot;:[{&quot;id&quot;:0,&quot;name&quot;:&quot;Baird Keller&quot;},{&quot;id&quot;:1,&quot;name&quot;:&quot;Francesca Reese&quot;},{&quot;id&quot;:2,&quot;name&quot;:&quot;Dona Bartlett&quot;}]},{&quot;_id&quot;:&quot;5cd678530df22d3625ed8375&quot;,&quot;isActive&quot;:true,&quot;balance&quot;:&quot;$2,412.67&quot;,&quot;age&quot;:20,&quot;eyeColor&quot;:&quot;blue&quot;,&quot;name&quot;:&quot;Krista Baxter&quot;,&quot;email&quot;:&quot;kristabaxter@conjurica.com&quot;,&quot;about&quot;:&quot;Sint quis nulla ea fugiat. Commodo nisi qui eu sit.&quot;,&quot;registered&quot;:&quot;2017-07-19T05:03:47 -02:00&quot;,&quot;tags&quot;:[&quot;sit&quot;,&quot;cillum&quot;,&quot;commodo&quot;,&quot;labore&quot;,&quot;sint&quot;,&quot;in&quot;,&quot;exercitation&quot;],&quot;friends&quot;:[{&quot;id&quot;:0,&quot;name&quot;:&quot;Pace Bell&quot;}]}]</span></span>
-<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a></span>
-<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co"># load additionally contacts JSON data</span></span>
-<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="fu">docdb_create</span>(src, key, contacts)</span>
-<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; Note: container &#39;my_container&#39; already exists</span></span>
-<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt; [1] 5</span></span></code></pre></div>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co"># load data from a data frame with row names into</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># the container specified in &quot;key&quot; parameter</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">docdb_create</span>(<span class="at">src =</span> src, <span class="at">key =</span> key, <span class="at">value =</span> mtcars)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; [1] 32</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co"># load additionally 98 NDJSON records</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">docdb_create</span>(src, key, <span class="st">&quot;https://httpbin.org/stream/98&quot;</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; Note: container &#39;my_container&#39; already exists</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; [1] 98</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co"># load additionally mapdata as list</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="fu">docdb_create</span>(src, key, jsonlite<span class="sc">::</span><span class="fu">fromJSON</span>(mapdata, <span class="at">simplifyVector =</span> <span class="cn">FALSE</span>))</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; Note: container &#39;my_container&#39; already exists</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; [1] 2</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co"># show JSON structure of contacts</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>jsonlite<span class="sc">::</span><span class="fu">minify</span>(contacts)</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; [{&quot;_id&quot;:&quot;5cd67853f841025e65ce0ce2&quot;,&quot;isActive&quot;:false,&quot;balance&quot;:&quot;$3,808.45&quot;,&quot;age&quot;:23,&quot;eyeColor&quot;:&quot;green&quot;,&quot;name&quot;:&quot;Lacy Chen&quot;,&quot;email&quot;:&quot;lacychen@conjurica.com&quot;,&quot;about&quot;:&quot;Sunt consequat ad dolore.\nExercitation nisi reprehenderit.&quot;,&quot;registered&quot;:&quot;2014-08-03T12:11:54 -02:00&quot;,&quot;tags&quot;:[&quot;nulla&quot;,&quot;nisi&quot;,&quot;adipisicing&quot;,&quot;do&quot;,&quot;ad&quot;,&quot;ullamco&quot;,&quot;irure&quot;],&quot;friends&quot;:[{&quot;id&quot;:0,&quot;name&quot;:&quot;Wooten Goodwin&quot;},{&quot;id&quot;:1,&quot;name&quot;:&quot;Brandie Woodward&quot;},{&quot;id&quot;:2,&quot;name&quot;:&quot;Angelique Britt&quot;}]},{&quot;_id&quot;:&quot;5cd678531b423d5f04cfb0a1&quot;,&quot;isActive&quot;:false,&quot;balance&quot;:&quot;$3,400.50&quot;,&quot;age&quot;:20,&quot;eyeColor&quot;:&quot;brown&quot;,&quot;name&quot;:&quot;Rae Colon&quot;,&quot;email&quot;:&quot;raecolon@conjurica.com&quot;,&quot;about&quot;:&quot;Nisi excepteur duis duis aliquip qui id consequat consequat.&quot;,&quot;registered&quot;:&quot;2018-12-19T06:23:35 -01:00&quot;,&quot;tags&quot;:[&quot;nostrud&quot;,&quot;eu&quot;,&quot;consectetur&quot;,&quot;adipisicing&quot;,&quot;labore&quot;,&quot;ut&quot;,&quot;voluptate&quot;],&quot;friends&quot;:[{&quot;id&quot;:0,&quot;name&quot;:&quot;Yang Yates&quot;},{&quot;id&quot;:1,&quot;name&quot;:&quot;Lacy Chen&quot;}]},{&quot;_id&quot;:&quot;5cd6785335b63cb19dfa8347&quot;,&quot;isActive&quot;:false,&quot;balance&quot;:&quot;$2,579.09&quot;,&quot;age&quot;:30,&quot;eyeColor&quot;:&quot;brown&quot;,&quot;name&quot;:&quot;Williamson French&quot;,&quot;email&quot;:&quot;williamsonfrench@conjurica.com&quot;,&quot;about&quot;:&quot;Nulla do sunt consectetur officia. Laboris pariatur incididunt.&quot;,&quot;registered&quot;:&quot;2018-02-14T10:59:57 -01:00&quot;,&quot;tags&quot;:[&quot;exercitation&quot;,&quot;do&quot;,&quot;magna&quot;,&quot;ut&quot;,&quot;consectetur&quot;,&quot;ex&quot;,&quot;incididunt&quot;],&quot;friends&quot;:[{&quot;id&quot;:0,&quot;name&quot;:&quot;Coleen Dunn&quot;},{&quot;id&quot;:1,&quot;name&quot;:&quot;Doris Phillips&quot;},{&quot;id&quot;:2,&quot;name&quot;:&quot;Concetta Turner&quot;}]},{&quot;_id&quot;:&quot;5cd6785325ce3a94dfc54096&quot;,&quot;isActive&quot;:true,&quot;balance&quot;:&quot;$1,161.52&quot;,&quot;age&quot;:22,&quot;eyeColor&quot;:&quot;brown&quot;,&quot;name&quot;:&quot;Pace Bell&quot;,&quot;email&quot;:&quot;pacebell@conjurica.com&quot;,&quot;about&quot;:&quot;Eiusmod sunt laborum ipsum do cupidatat qui id dolore do.&quot;,&quot;registered&quot;:&quot;2018-08-17T12:23:42 -02:00&quot;,&quot;tags&quot;:[&quot;aliqua&quot;,&quot;consectetur&quot;,&quot;commodo&quot;,&quot;velit&quot;,&quot;cupidatat&quot;,&quot;duis&quot;,&quot;dolore&quot;],&quot;friends&quot;:[{&quot;id&quot;:0,&quot;name&quot;:&quot;Baird Keller&quot;},{&quot;id&quot;:1,&quot;name&quot;:&quot;Francesca Reese&quot;},{&quot;id&quot;:2,&quot;name&quot;:&quot;Dona Bartlett&quot;}]},{&quot;_id&quot;:&quot;5cd678530df22d3625ed8375&quot;,&quot;isActive&quot;:true,&quot;balance&quot;:&quot;$2,412.67&quot;,&quot;age&quot;:20,&quot;eyeColor&quot;:&quot;blue&quot;,&quot;name&quot;:&quot;Krista Baxter&quot;,&quot;email&quot;:&quot;kristabaxter@conjurica.com&quot;,&quot;about&quot;:&quot;Sint quis nulla ea fugiat. Commodo nisi qui eu sit.&quot;,&quot;registered&quot;:&quot;2017-07-19T05:03:47 -02:00&quot;,&quot;tags&quot;:[&quot;sit&quot;,&quot;cillum&quot;,&quot;commodo&quot;,&quot;labore&quot;,&quot;sint&quot;,&quot;in&quot;,&quot;exercitation&quot;],&quot;friends&quot;:[{&quot;id&quot;:0,&quot;name&quot;:&quot;Pace Bell&quot;}]}]</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co"># load additionally contacts JSON data</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="fu">docdb_create</span>(src, key, contacts)</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; Note: container &#39;my_container&#39; already exists</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; [1] 5</span></span></code></pre></div>
 <p>Check and list any other containers exist in the database:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">docdb_list</span>(<span class="at">src =</span> src)</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt; [1] &quot;my_container&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">docdb_list</span>(<span class="at">src =</span> src)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; [1] &quot;my_container&quot;</span></span></code></pre></div>
 </div>
 <div id="identifiers" class="section level3">
 <h3>Identifiers</h3>
@@ -448,11 +449,11 @@ shown just above.</p>
 be created, or the number of the subset of documents in
 <code>value</code> that did not yet exist and could newly be
 created.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># zero new documents created</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">docdb_create</span>(src, key, <span class="at">value =</span> mtcars)</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; Note: container &#39;my_container&#39; already exists</span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; Warning: Could not create some documents, reason: UNIQUE constraint failed</span></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># zero new documents created</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">docdb_create</span>(src, key, <span class="at">value =</span> mtcars)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co">#&gt; Note: container &#39;my_container&#39; already exists</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co">#&gt; Warning: Could not create some documents, reason: UNIQUE constraint failed</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span></code></pre></div>
 <p>For updating existing documents, see below function
 <code>docdb_update()</code>.</p>
 </div>
@@ -460,118 +461,135 @@ created.</p>
 <h3>docdb_get</h3>
 <p>All documents in a container can now be retrieved with
 <code>docdb_get()</code>.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># load library for more </span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co"># readable print output</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co"># get all documents, irrespective of schema</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="fu">as_tibble</span>(<span class="fu">docdb_get</span>(src, key))</span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; # A tibble: 137 × 31</span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;    `_id`     isActive balance   age eyeColor name  email about registered tags  </span></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;     &lt;lgl&gt;    &lt;chr&gt;   &lt;int&gt; &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;      &lt;list&gt;</span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;  1 5cd67853… TRUE     $2,412…    20 blue     Kris… kris… &quot;Sin… 2017-07-1… &lt;chr&gt; </span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;  2 5cd67853… FALSE    $3,400…    20 brown    Rae … raec… &quot;Nis… 2018-12-1… &lt;chr&gt; </span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;  3 5cd67853… TRUE     $1,161…    22 brown    Pace… pace… &quot;Eiu… 2018-08-1… &lt;chr&gt; </span></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  4 5cd67853… FALSE    $2,579…    30 brown    Will… will… &quot;Nul… 2018-02-1… &lt;chr&gt; </span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;  5 5cd67853… FALSE    $3,808…    23 green    Lacy… lacy… &quot;Sun… 2014-08-0… &lt;chr&gt; </span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt;  6 AMC Jave… NA       &lt;NA&gt;       NA &lt;NA&gt;     &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; &lt;NA&gt;       &lt;NULL&gt;</span></span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt;  7 Cadillac… NA       &lt;NA&gt;       NA &lt;NA&gt;     &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; &lt;NA&gt;       &lt;NULL&gt;</span></span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt;  8 Camaro Z… NA       &lt;NA&gt;       NA &lt;NA&gt;     &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; &lt;NA&gt;       &lt;NULL&gt;</span></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt;  9 Chrysler… NA       &lt;NA&gt;       NA &lt;NA&gt;     &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; &lt;NA&gt;       &lt;NULL&gt;</span></span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; 10 Datsun 7… NA       &lt;NA&gt;       NA &lt;NA&gt;     &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; &lt;NA&gt;       &lt;NULL&gt;</span></span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; # ℹ 127 more rows</span></span>
-<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; # ℹ 21 more variables: friends &lt;list&gt;, mpg &lt;dbl&gt;, cyl &lt;int&gt;, disp &lt;dbl&gt;,</span></span>
-<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; #   hp &lt;int&gt;, drat &lt;dbl&gt;, wt &lt;dbl&gt;, qsec &lt;dbl&gt;, vs &lt;int&gt;, am &lt;int&gt;, gear &lt;int&gt;,</span></span>
-<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; #   carb &lt;int&gt;, url &lt;chr&gt;, args &lt;df[,0]&gt;, headers &lt;df[,4]&gt;, origin &lt;chr&gt;,</span></span>
-<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co">#&gt; #   id &lt;int&gt;, destination_addresses &lt;list&gt;, origin_addresses &lt;list&gt;,</span></span>
-<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co">#&gt; #   rows &lt;list&gt;, status &lt;chr&gt;</span></span>
-<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a></span>
-<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co"># get just 2 documents using limit and note that</span></span>
-<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co"># only fields for these documents are returned</span></span>
-<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="fu">as_tibble</span>(<span class="fu">docdb_get</span>(src, key, <span class="at">limit =</span> <span class="dv">2</span><span class="dt">L</span>))</span>
-<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 11</span></span>
-<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt;   `_id`       isActive balance   age eyeColor name  email about registered tags </span></span>
-<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;       &lt;lgl&gt;    &lt;chr&gt;   &lt;int&gt; &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;      &lt;lis&gt;</span></span>
-<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="co">#&gt; 1 5cd678530d… TRUE     $2,412…    20 blue     Kris… kris… Sint… 2017-07-1… &lt;chr&gt;</span></span>
-<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt; 2 5cd678531b… FALSE    $3,400…    20 brown    Rae … raec… Nisi… 2018-12-1… &lt;chr&gt;</span></span>
-<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: friends &lt;list&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># load library for more</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co"># readable print output</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co"># get all documents, irrespective of schema</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="fu">as_tibble</span>(<span class="fu">docdb_get</span>(src, key))</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="co">#&gt; # A tibble: 137 × 31</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="co">#&gt;    `_id`             url   args  headers$Host origin    id destination_addresses</span></span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;             &lt;chr&gt; &lt;df[&gt; &lt;chr&gt;        &lt;chr&gt;  &lt;int&gt; &lt;list&gt;               </span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt;  1 060ef2ee-36e2-11… http…       httpbin.org  143.1…     0 &lt;NULL&gt;               </span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt;  2 060ef302-36e2-11… http…       httpbin.org  143.1…     1 &lt;NULL&gt;               </span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;  3 060ef303-36e2-11… http…       httpbin.org  143.1…     2 &lt;NULL&gt;               </span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;  4 060ef30c-36e2-11… http…       httpbin.org  143.1…     3 &lt;NULL&gt;               </span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt;  5 060ef30d-36e2-11… http…       httpbin.org  143.1…     4 &lt;NULL&gt;               </span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;  6 060ef316-36e2-11… http…       httpbin.org  143.1…     5 &lt;NULL&gt;               </span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt;  7 060ef317-36e2-11… http…       httpbin.org  143.1…     6 &lt;NULL&gt;               </span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt;  8 060ef318-36e2-11… http…       httpbin.org  143.1…     7 &lt;NULL&gt;               </span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt;  9 060ef320-36e2-11… http…       httpbin.org  143.1…     8 &lt;NULL&gt;               </span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt; 10 060ef321-36e2-11… http…       httpbin.org  143.1…     9 &lt;NULL&gt;               </span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt; # ℹ 127 more rows</span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt; # ℹ 27 more variables: headers$`X-Amzn-Trace-Id` &lt;chr&gt;, $`User-Agent` &lt;chr&gt;,</span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt; #   $Accept &lt;chr&gt;, origin_addresses &lt;list&gt;, rows &lt;list&gt;, status &lt;chr&gt;,</span></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co">#&gt; #   isActive &lt;lgl&gt;, balance &lt;chr&gt;, age &lt;int&gt;, eyeColor &lt;chr&gt;, name &lt;chr&gt;,</span></span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co">#&gt; #   email &lt;chr&gt;, about &lt;chr&gt;, registered &lt;chr&gt;, tags &lt;list&gt;, friends &lt;list&gt;,</span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="co">#&gt; #   mpg &lt;dbl&gt;, cyl &lt;int&gt;, disp &lt;dbl&gt;, hp &lt;int&gt;, drat &lt;dbl&gt;, wt &lt;dbl&gt;,</span></span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="co">#&gt; #   qsec &lt;dbl&gt;, vs &lt;int&gt;, am &lt;int&gt;, gear &lt;int&gt;, carb &lt;int&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co"># get just 2 documents using limit and note that</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co"># only fields for these documents are returned</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="fu">as_tibble</span>(<span class="fu">docdb_get</span>(src, key, <span class="at">limit =</span> <span class="dv">2</span><span class="dt">L</span>))</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 6</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt;   `_id`                                url       args  headers$Host origin    id</span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                                &lt;chr&gt;     &lt;df[&gt; &lt;chr&gt;        &lt;chr&gt;  &lt;int&gt;</span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&gt; 1 060ef2ee-36e2-11ef-b52d-acbc328130bb https://…       httpbin.org  143.1…     0</span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co">#&gt; 2 060ef302-36e2-11ef-b52d-acbc328130bb https://…       httpbin.org  143.1…     1</span></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co">#&gt; # ℹ 3 more variables: headers$`X-Amzn-Trace-Id` &lt;chr&gt;, $`User-Agent` &lt;chr&gt;,</span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt; #   $Accept &lt;chr&gt;</span></span></code></pre></div>
 </div>
 <div id="docdb_query" class="section level3">
 <h3>docdb_query</h3>
 <p>One of the most powerful functions of <code>nodbi</code> is
 <code>docdb_query()</code> because it permits to combine a query to
 select documents and to filter for fields of interest.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># query for some documents</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">docdb_query</span>(<span class="at">src =</span> src, <span class="at">key =</span> key, <span class="at">query =</span> <span class="st">&#39;{&quot;mpg&quot;: {&quot;$gte&quot;: 30}}&#39;</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt;              _id  mpg cyl disp  hp drat    wt  qsec vs am gear carb</span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; 1       Fiat 128 32.4   4 78.7  66 4.08 2.200 19.47  1  1    4    1</span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; 2    Honda Civic 30.4   4 75.7  52 4.93 1.615 18.52  1  1    4    2</span></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; 3 Toyota Corolla 33.9   4 71.1  65 4.22 1.835 19.90  1  1    4    1</span></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; 4   Lotus Europa 30.4   4 95.1 113 3.77 1.513 16.90  1  1    5    2</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># query for some documents</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">docdb_query</span>(<span class="at">src =</span> src, <span class="at">key =</span> key, <span class="at">query =</span> <span class="st">&#39;{&quot;mpg&quot;: {&quot;$gte&quot;: 30}}&#39;</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co">#&gt;              _id  mpg cyl disp  hp drat    wt  qsec vs am gear carb</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co">#&gt; 1       Fiat 128 32.4   4 78.7  66 4.08 2.200 19.47  1  1    4    1</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co">#&gt; 2    Honda Civic 30.4   4 75.7  52 4.93 1.615 18.52  1  1    4    2</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="co">#&gt; 3 Toyota Corolla 33.9   4 71.1  65 4.22 1.835 19.90  1  1    4    1</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co">#&gt; 4   Lotus Europa 30.4   4 95.1 113 3.77 1.513 16.90  1  1    5    2</span></span></code></pre></div>
 <p>Both parameters <code>query</code> (obligatory) and
 <code>fields</code> (optional) use, across all databases, MongoDB syntax
 such as documented for <a href="https://www.mongodb.com/docs/manual/crud/">queries</a> and <a href="https://www.mongodb.com/docs/manual/tutorial/project-fields-from-query-results/">fields</a>.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># query some fields from some documents; &#39;query&#39; is a mandatory </span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co"># parameter and is used here in its position in the signature</span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="fu">docdb_query</span>(src, key, <span class="st">&#39;{&quot;mpg&quot;: {&quot;$gte&quot;: 30}}&#39;</span>, <span class="at">fields =</span> <span class="st">&#39;{&quot;wt&quot;: 1, &quot;mpg&quot;: 1}&#39;</span>)</span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt;              _id    wt  mpg</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; 1       Fiat 128 2.200 32.4</span></span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; 2    Honda Civic 1.615 30.4</span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; 3 Toyota Corolla 1.835 33.9</span></span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; 4   Lotus Europa 1.513 30.4</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># query some fields from some documents; &#39;query&#39; is a mandatory</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="co"># parameter and is used here in its position in the signature</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="fu">docdb_query</span>(src, key, <span class="st">&#39;{&quot;mpg&quot;: {&quot;$gte&quot;: 30}}&#39;</span>, <span class="at">fields =</span> <span class="st">&#39;{&quot;wt&quot;: 1, &quot;mpg&quot;: 1}&#39;</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co">#&gt;              _id    wt  mpg</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co">#&gt; 1       Fiat 128 2.200 32.4</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&gt; 2    Honda Civic 1.615 30.4</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&gt; 3 Toyota Corolla 1.835 33.9</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt; 4   Lotus Europa 1.513 30.4</span></span></code></pre></div>
 <p>Unless <code>fields</code> specifies <code>&quot;_id&quot;: 0</code>, the
 <code>_id</code> field is always included in the output of
 <code>docdb_query()</code>.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># query some fields from some documents, limit return to one document</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">docdb_query</span>(src, key, <span class="st">&#39;{&quot;mpg&quot;: {&quot;$gte&quot;: 30}}&#39;</span>, <span class="at">fields =</span> <span class="st">&#39;{&quot;_id&quot;: 0, &quot;mpg&quot;: 1}&#39;</span>, <span class="at">limit =</span> <span class="dv">1</span><span class="dt">L</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt;    mpg</span></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; 1 32.4</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># query some fields from some documents, limit return to one document</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">docdb_query</span>(src, key, <span class="st">&#39;{&quot;mpg&quot;: {&quot;$gte&quot;: 30}}&#39;</span>, <span class="at">fields =</span> <span class="st">&#39;{&quot;_id&quot;: 0, &quot;mpg&quot;: 1}&#39;</span>, <span class="at">limit =</span> <span class="dv">1</span><span class="dt">L</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt;    mpg</span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; 1 32.4</span></span></code></pre></div>
 <p>Queries can be more complex such as in this example, showing a dot
 notation of a sub-field and an example operator (regular
 expression).</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># query some subitem fields from some documents</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">str</span>(<span class="fu">docdb_query</span>(</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  src, key, </span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">query =</span> <span class="st">&#39;{&quot;$or&quot;: [{&quot;age&quot;: {&quot;$gt&quot;: 21}}, </span></span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="st">           {&quot;friends.name&quot;: {&quot;$regex&quot;: &quot;^B[a-z]{3,9}.*&quot;}}]}&#39;</span>, </span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="at">fields =</span> <span class="st">&#39;{&quot;age&quot;: 1, &quot;friends.name&quot;: 1}&#39;</span>))</span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt; &#39;data.frame&#39;:    3 obs. of  3 variables:</span></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt;  $ _id         : chr  &quot;5cd67853f841025e65ce0ce2&quot; &quot;5cd6785335b63cb19dfa8347&quot; &quot;5cd6785325ce3a94dfc54096&quot;</span></span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt;  $ age         : int  23 30 22</span></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt;  $ friends.name:List of 3</span></span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt;   ..$ : chr  &quot;Wooten Goodwin&quot; &quot;Brandie Woodward&quot; &quot;Angelique Britt&quot;</span></span>
-<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt;   ..$ : chr  &quot;Coleen Dunn&quot; &quot;Doris Phillips&quot; &quot;Concetta Turner&quot;</span></span>
-<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt;   ..$ : chr  &quot;Baird Keller&quot; &quot;Francesca Reese&quot; &quot;Dona Bartlett&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># query some subitem fields from some documents</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="fu">str</span>(<span class="fu">docdb_query</span>(</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  src, key,</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="at">query =</span> <span class="st">&#39;{&quot;$or&quot;: [{&quot;age&quot;: {&quot;$gt&quot;: 21}},</span></span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="st">           {&quot;friends.name&quot;: {&quot;$regex&quot;: &quot;^B[a-z]{3,9}.*&quot;}}]}&#39;</span>,</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>  <span class="at">fields =</span> <span class="st">&#39;{&quot;age&quot;: 1, &quot;friends.name&quot;: 1}&#39;</span></span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>))</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a><span class="co">#&gt; &#39;data.frame&#39;:    3 obs. of  3 variables:</span></span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a><span class="co">#&gt;  $ _id         : chr  &quot;5cd67853f841025e65ce0ce2&quot; &quot;5cd6785335b63cb19dfa8347&quot; &quot;5cd6785325ce3a94dfc54096&quot;</span></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="co">#&gt;  $ age         : int  23 30 22</span></span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="co">#&gt;  $ friends.name:List of 3</span></span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a><span class="co">#&gt;   ..$ : chr  &quot;Wooten Goodwin&quot; &quot;Brandie Woodward&quot; &quot;Angelique Britt&quot;</span></span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a><span class="co">#&gt;   ..$ : chr  &quot;Coleen Dunn&quot; &quot;Doris Phillips&quot; &quot;Concetta Turner&quot;</span></span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a><span class="co">#&gt;   ..$ : chr  &quot;Baird Keller&quot; &quot;Francesca Reese&quot; &quot;Dona Bartlett&quot;</span></span></code></pre></div>
 <p>Queries work across documents of different structure such as
 here.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># query with results across documents</span></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">docdb_query</span>(</span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  src, key, </span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">query =</span> <span class="st">&#39;{&quot;$or&quot;: [{&quot;age&quot;: {&quot;$gt&quot;: 21}}, {&quot;mpg&quot;: {&quot;$gte&quot;: 30}}]}&#39;</span>, </span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">fields =</span> <span class="st">&#39;{&quot;name&quot;: 1, &quot;disp&quot;: 1}&#39;</span>)</span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="co">#&gt;                        _id              name disp</span></span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="co">#&gt; 1                 Fiat 128              &lt;NA&gt; 78.7</span></span>
-<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="co">#&gt; 2              Honda Civic              &lt;NA&gt; 75.7</span></span>
-<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="co">#&gt; 3           Toyota Corolla              &lt;NA&gt; 71.1</span></span>
-<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt; 4             Lotus Europa              &lt;NA&gt; 95.1</span></span>
-<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt; 5 5cd67853f841025e65ce0ce2         Lacy Chen   NA</span></span>
-<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt; 6 5cd6785335b63cb19dfa8347 Williamson French   NA</span></span>
-<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt; 7 5cd6785325ce3a94dfc54096         Pace Bell   NA</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># query with results across documents</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="fu">docdb_query</span>(</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  src, key,</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>  <span class="at">query =</span> <span class="st">&#39;{&quot;$or&quot;: [{&quot;age&quot;: {&quot;$gt&quot;: 21}}, {&quot;mpg&quot;: {&quot;$gte&quot;: 30}}]}&#39;</span>,</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>  <span class="at">fields =</span> <span class="st">&#39;{&quot;name&quot;: 1, &quot;disp&quot;: 1}&#39;</span></span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>)</span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a><span class="co">#&gt;                        _id              name disp</span></span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a><span class="co">#&gt; 1                 Fiat 128              &lt;NA&gt; 78.7</span></span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a><span class="co">#&gt; 2              Honda Civic              &lt;NA&gt; 75.7</span></span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a><span class="co">#&gt; 3           Toyota Corolla              &lt;NA&gt; 71.1</span></span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a><span class="co">#&gt; 4             Lotus Europa              &lt;NA&gt; 95.1</span></span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a><span class="co">#&gt; 5 5cd67853f841025e65ce0ce2         Lacy Chen   NA</span></span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a><span class="co">#&gt; 6 5cd6785335b63cb19dfa8347 Williamson French   NA</span></span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a><span class="co">#&gt; 7 5cd6785325ce3a94dfc54096         Pace Bell   NA</span></span></code></pre></div>
 </div>
 <div id="field-names" class="section level3">
 <h3>Field names</h3>
 <p>The <code>JSON</code> data handled by package <code>nodbi</code> may
 have a large number of field included nested fields in objects (see for
-example <code>name</code> within array <code>friends</code> above), and
-there is no simple function to list field names.</p>
-<p>Thus, an argument is provided for <code>docdb_query()</code> so that
-the function returns only the comprehensive list of all field names in
+example <code>name</code> within array <code>friends</code> above).
+Thus, an argument is provided for <code>docdb_query()</code> so that the
+function returns only the comprehensive list of all field names in
 documents selected with a query (or in all documents in the container if
 <code>query = &quot;{}&quot;</code> is specified).</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">docdb_query</span>(src, key, <span class="at">query =</span> <span class="st">&#39;{&quot;_id&quot;: {&quot;$regex&quot;: &quot;^[0-9]&quot;}}&#39;</span>, <span class="at">listfields =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;about&quot;        &quot;age&quot;          &quot;balance&quot;      &quot;email&quot;        &quot;eyeColor&quot;    </span></span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&gt;  [6] &quot;friends&quot;      &quot;friends.id&quot;   &quot;friends.name&quot; &quot;isActive&quot;     &quot;name&quot;        </span></span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&gt; [11] &quot;registered&quot;   &quot;tags&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="fu">docdb_query</span>(src, key, <span class="at">query =</span> <span class="st">&#39;{&quot;_id&quot;: {&quot;$regex&quot;: &quot;^[0-9]&quot;}}&#39;</span>, <span class="at">listfields =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;about&quot;                            &quot;age&quot;                             </span></span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="co">#&gt;  [3] &quot;args&quot;                             &quot;balance&quot;                         </span></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="co">#&gt;  [5] &quot;destination_addresses&quot;            &quot;email&quot;                           </span></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="co">#&gt;  [7] &quot;eyeColor&quot;                         &quot;friends&quot;                         </span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a><span class="co">#&gt;  [9] &quot;friends.id&quot;                       &quot;friends.name&quot;                    </span></span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a><span class="co">#&gt; [11] &quot;headers&quot;                          &quot;headers.Accept&quot;                  </span></span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a><span class="co">#&gt; [13] &quot;headers.Host&quot;                     &quot;headers.User-Agent&quot;              </span></span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="co">#&gt; [15] &quot;headers.X-Amzn-Trace-Id&quot;          &quot;id&quot;                              </span></span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a><span class="co">#&gt; [17] &quot;isActive&quot;                         &quot;name&quot;                            </span></span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a><span class="co">#&gt; [19] &quot;origin&quot;                           &quot;origin_addresses&quot;                </span></span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="co">#&gt; [21] &quot;registered&quot;                       &quot;rows&quot;                            </span></span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a><span class="co">#&gt; [23] &quot;rows.elements&quot;                    &quot;rows.elements.distance&quot;          </span></span>
+<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a><span class="co">#&gt; [25] &quot;rows.elements.distance.somevalue&quot; &quot;rows.elements.distance.text&quot;     </span></span>
+<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a><span class="co">#&gt; [27] &quot;rows.elements.duration&quot;           &quot;rows.elements.duration.somevalue&quot;</span></span>
+<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a><span class="co">#&gt; [29] &quot;rows.elements.duration.text&quot;      &quot;rows.elements.status&quot;            </span></span>
+<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a><span class="co">#&gt; [31] &quot;status&quot;                           &quot;tags&quot;                            </span></span>
+<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a><span class="co">#&gt; [33] &quot;url&quot;</span></span></code></pre></div>
 <p>The dot notation is a path from a root field to the nested field, and
 this notation can be used in <code>query</code> and <code>fields</code>
 parameters of <code>docdb_query()</code>.</p>
@@ -587,45 +605,45 @@ from a data frame, a list, a JSON string, or a file name or URL pointing
 to <code>NDJSON</code>, and if <code>value</code> includes row names or
 <code>_id</code>’s, these are used to identify the documents to be
 updated.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># number of documents corresponding to query</span></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">docdb_query</span>(src, key, <span class="at">query =</span> <span class="st">&#39;{&quot;carb&quot;: 3}&#39;</span>))</span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co">#&gt; [1] 3</span></span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a> </span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co"># update all documents using JSON, replacing the previously existing values</span></span>
-<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="fu">docdb_update</span>(src, key, <span class="at">value =</span> <span class="st">&#39;{&quot;vs&quot;: 9, &quot;xy&quot;: [1, 2]}&#39;</span>, <span class="at">query =</span> <span class="st">&#39;{&quot;carb&quot;: 3}&#39;</span>)</span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co">#&gt; [1] 3</span></span>
-<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a></span>
-<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co"># update with value that includes _id&#39;s</span></span>
-<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="fu">docdb_update</span>(src, key, <span class="at">value =</span> <span class="st">&#39;{&quot;_id&quot;: &quot;Merc 450SLC&quot;, &quot;xy&quot;: 33}&#39;</span>, <span class="at">query =</span> <span class="st">&#39;{}&#39;</span>)</span>
-<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt; [1] 1</span></span>
-<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a></span>
-<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="co"># show updated values </span></span>
-<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="fu">docdb_query</span>(src, key, <span class="at">query =</span> <span class="st">&#39;{&quot;carb&quot;: 3}&#39;</span>, <span class="at">fields =</span> <span class="st">&#39;{&quot;xy&quot;: 1}&#39;</span>)</span>
-<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt;           _id   xy</span></span>
-<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt; 1  Merc 450SE 1, 2</span></span>
-<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt; 2  Merc 450SL 1, 2</span></span>
-<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt; 3 Merc 450SLC   33</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="co"># number of documents corresponding to query</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">docdb_query</span>(src, key, <span class="at">query =</span> <span class="st">&#39;{&quot;carb&quot;: 3}&#39;</span>))</span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="co">#&gt; [1] 3</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="co"># update all documents using JSON, replacing the previously existing values</span></span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="fu">docdb_update</span>(src, key, <span class="at">value =</span> <span class="st">&#39;{&quot;vs&quot;: 9, &quot;xy&quot;: [1, 2]}&#39;</span>, <span class="at">query =</span> <span class="st">&#39;{&quot;carb&quot;: 3}&#39;</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="co">#&gt; [1] 3</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a><span class="co"># update with value that includes _id&#39;s</span></span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="fu">docdb_update</span>(src, key, <span class="at">value =</span> <span class="st">&#39;{&quot;_id&quot;: &quot;Merc 450SLC&quot;, &quot;xy&quot;: 33}&#39;</span>, <span class="at">query =</span> <span class="st">&quot;{}&quot;</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="co">#&gt; [1] 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="co"># show updated values</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="fu">docdb_query</span>(src, key, <span class="at">query =</span> <span class="st">&#39;{&quot;carb&quot;: 3}&#39;</span>, <span class="at">fields =</span> <span class="st">&#39;{&quot;xy&quot;: 1}&#39;</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="co">#&gt;           _id   xy</span></span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a><span class="co">#&gt; 1  Merc 450SE 1, 2</span></span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a><span class="co">#&gt; 2  Merc 450SL 1, 2</span></span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a><span class="co">#&gt; 3 Merc 450SLC   33</span></span></code></pre></div>
 </div>
 <div id="docdb_delete" class="section level3">
 <h3>docdb_delete</h3>
 <p>Documents and containers can be deleted with
 <code>docdb_delete()</code>. Its return value corresponds to the success
 of the delete operation.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># number of documents corresponding to query</span></span>
-<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">docdb_query</span>(src, key, <span class="at">query =</span> <span class="st">&#39;{&quot;age&quot;: {&quot;$lte&quot;: 23}}&#39;</span>))</span>
-<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co">#&gt; [1] 4</span></span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a></span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co"># to delete selected documents, specify a query parameter</span></span>
-<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="fu">docdb_delete</span>(src, key, <span class="at">query =</span> <span class="st">&#39;{&quot;age&quot;: {&quot;$lte&quot;: 23}}&#39;</span>)</span>
-<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
-<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a></span>
-<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co"># this deletes the complete container from database</span></span>
-<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="fu">docdb_delete</span>(src, key)</span>
-<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
-<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a></span>
-<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co"># check if still exists</span></span>
-<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="fu">docdb_exists</span>(src, key)</span>
-<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="co"># number of documents corresponding to query</span></span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">docdb_query</span>(src, key, <span class="at">query =</span> <span class="st">&#39;{&quot;age&quot;: {&quot;$lte&quot;: 23}}&#39;</span>))</span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a><span class="co">#&gt; [1] 4</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a><span class="co"># to delete selected documents, specify a query parameter</span></span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a><span class="fu">docdb_delete</span>(src, key, <span class="at">query =</span> <span class="st">&#39;{&quot;age&quot;: {&quot;$lte&quot;: 23}}&#39;</span>)</span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a></span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a><span class="co"># this deletes the complete container from database</span></span>
+<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a><span class="fu">docdb_delete</span>(src, key)</span>
+<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a></span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a><span class="co"># check if still exists</span></span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a><span class="fu">docdb_exists</span>(src, key)</span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
 </div>
 <div id="disconnect-and-shutdown" class="section level3">
 <h3>Disconnect and shutdown</h3>
@@ -635,19 +653,20 @@ those databases that require it (SQLite, DuckDB, PostgreSQL).</p>
 <p>Nevertheless, it is good practice to manually disconnect and shut
 down connections as specific to the database, for example for
 SQLite:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>src</span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="co">#&gt; src: sqlite</span></span>
-<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt; SQLite library version: 3.45.0</span></span>
-<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt;  size: NA kBytes</span></span>
-<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co">#&gt;  dbname: :memory:</span></span>
-<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co">#&gt; Warning: Database is only in memory, will not persist after R ends! Consider to copy it with </span></span>
-<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="co">#&gt; RSQLite::sqliteCopyDatabase(</span></span>
-<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="co">#&gt;   from = &lt;your nodbi::src_sqlite() object&gt;$con, </span></span>
-<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co">#&gt;   to = &lt;e.g. RSQLite::dbConnect(RSQLite::SQLite(), &#39;local_file.db&#39;)&gt;</span></span>
-<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a><span class="co">#&gt;   )</span></span>
-<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a></span>
-<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="co"># shutdown</span></span>
-<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a>DBI<span class="sc">::</span><span class="fu">dbDisconnect</span>(src<span class="sc">$</span>con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>); <span class="fu">rm</span>(src)</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a>src</span>
+<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a><span class="co">#&gt; src: sqlite</span></span>
+<span id="cb27-3"><a href="#cb27-3" tabindex="-1"></a><span class="co">#&gt; SQLite library version: 3.46.0</span></span>
+<span id="cb27-4"><a href="#cb27-4" tabindex="-1"></a><span class="co">#&gt;  size: NA kBytes</span></span>
+<span id="cb27-5"><a href="#cb27-5" tabindex="-1"></a><span class="co">#&gt;  dbname: :memory:</span></span>
+<span id="cb27-6"><a href="#cb27-6" tabindex="-1"></a><span class="co">#&gt; Warning: Database is only in memory, will not persist after R ends! Consider to copy it with </span></span>
+<span id="cb27-7"><a href="#cb27-7" tabindex="-1"></a><span class="co">#&gt; RSQLite::sqliteCopyDatabase(</span></span>
+<span id="cb27-8"><a href="#cb27-8" tabindex="-1"></a><span class="co">#&gt;   from = &lt;your nodbi::src_sqlite() object&gt;$con, </span></span>
+<span id="cb27-9"><a href="#cb27-9" tabindex="-1"></a><span class="co">#&gt;   to = &lt;e.g. RSQLite::dbConnect(RSQLite::SQLite(), &#39;local_file.db&#39;)&gt;</span></span>
+<span id="cb27-10"><a href="#cb27-10" tabindex="-1"></a><span class="co">#&gt;   )</span></span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a></span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a><span class="co"># shutdown</span></span>
+<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a>DBI<span class="sc">::</span><span class="fu">dbDisconnect</span>(src<span class="sc">$</span>con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a><span class="fu">rm</span>(src)</span></code></pre></div>
 </div>
 </div>
 

@@ -23,7 +23,8 @@ file name or URL that points to NDJSON documents}
 \item{query}{(character) A JSON query string, see examples.
 Can use comparisons / tests (\verb{$lt}, \verb{$lte}, \verb{$gt}, \verb{$gte},
 \verb{$ne}, \verb{$in}, \verb{$regex}), with logic operators (\verb{$and},
-\verb{$or}, \code{(}, \verb{)}), including nested queries, see examples.}
+\verb{$or}, \code{(}, \verb{)}), including nested queries, see examples.
+Specify as \code{'{}'} if \code{value} includes \verb{_id}'s.}
 
 \item{...}{Passed on to functions \code{\link[elastic:docs_bulk_update]{elastic::docs_bulk_update()}},
 and \code{\link[mongolite:mongo]{mongolite::mongo()}}$update().}
@@ -43,7 +44,7 @@ Uses native functions in MongoDB (\code{\link[mongolite:mongo]{mongolite::mongo(
 SQLite (\code{jsonb_update()}), DuckDB (\code{jsonb_merge_patch()}),
 Elasticsearch (\code{elastic::docs_bulk_update()});
 a \code{plpgsql} function added when calling \code{src_postgres()},
-and a \link{jqr} programme for CouchDB.
+and a \code{\link[jqr:jqr]{jqr::jqr()}} programme for CouchDB.
 }
 \examples{
 \dontrun{

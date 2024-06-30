@@ -1,3 +1,13 @@
+# nodbi 0.10.5
+
+## Bug fix
+* stop if query is invalid even though JSON is valid 
+* print information also for MongoDB connection object
+
+## Changes
+* code cleaning, parameters checking
+* document that `$regex` in `docdb_query()` is case-sensitive
+
 # nodbi 0.10.4
 
 ## Bug fix

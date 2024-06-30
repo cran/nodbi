@@ -10,7 +10,7 @@
 #' SQLite (`jsonb_update()`), DuckDB (`jsonb_merge_patch()`),
 #' Elasticsearch (`elastic::docs_bulk_update()`);
 #' a `plpgsql` function added when calling `src_postgres()`,
-#' and a [jqr] programme for CouchDB.
+#' and a [jqr::jqr()] programme for CouchDB.
 #'
 #' @inheritParams docdb_create
 #'
@@ -18,6 +18,7 @@
 #'  Can use comparisons / tests (`$lt`, `$lte`, `$gt`, `$gte`,
 #'  `$ne`, `$in`, `$regex`), with logic operators (`$and`,
 #'  `$or`, `(`, `)`), including nested queries, see examples.
+#'  Specify as `'{}'` if `value` includes `_id`'s.
 #'
 #' @param ... Passed on to functions [elastic::docs_bulk_update()],
 #' and [mongolite::mongo()]$update().
