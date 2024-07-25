@@ -138,8 +138,7 @@ docdb_query.src_couchdb <- function(src, key, query, ...) {
   # - where
   fldQ$jqrWhere <- character(0L)
   if (length(fldQ$queryCondition) &&
-      (!identical(fldQ$queryFields, fldQ$queryRootFields) ||
-       grepl("\"\\$[orinadegxlt]+\":", query))) {
+      !identical(fldQ$queryFields, fldQ$queryRootFields)) {
 
     fldQ$jqrWhere <- fldQ$queryJq
 
@@ -162,6 +161,7 @@ docdb_query.src_couchdb <- function(src, key, query, ...) {
       subQuery <- jqr::jq(query, paste0(" .. | .\"", i, "\"? | select (. != null) "))
       subQuery <- as.character(subQuery)
       subQueryIns <- gsub("^\\{|\\}$", "", subQuery)
+      # duplication is strange but needed
       subQueryMod <- paste0('{"$or":[{"$elemMatch":{', subQueryIns, '}},{', subQueryIns, '}]}')
 
       # integrate
@@ -207,7 +207,7 @@ docdb_query.src_couchdb <- function(src, key, query, ...) {
   }
 
   # - add selector, limit and close query
-  # TODO jqrWhere should, but cannot limit the number of documents
+  # TODO jqrWhere step should limit the final number of documents
   query <- paste0('{"selector": ', query, ', "limit": ', limit, '}')
 
 
@@ -456,7 +456,7 @@ docdb_query.src_mongo <- function(src, key, query, ...) {
 
     # $exists matches the documents that contain the field,
     # including documents where the field value is null
-    tf <- unique(c(fldQ$queryRootFields, fldQ$includeRootFields))
+    tf <- unique(c(fldQ$queryFields, fldQ$includeFields))
     addQuery <- paste0("{", paste0(
       '"', tf[tf != "_id"],
       '":{"$exists":true, "$ne": []}'), "}", collapse = ",")
@@ -519,9 +519,9 @@ docdb_query.src_mongo <- function(src, key, query, ...) {
                key = key.replace(/^[.]/, '');
                emit(key, 1);
       }}}}",
-      reduce = "function(i) {return i}",
-      query = query,
-      limit = n
+        reduce = "function(i) {return i}",
+        query = query,
+        limit = n
       )[["_id"]]}, silent = TRUE)
 
     # alternative approach, e.g. if
@@ -750,9 +750,9 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
 
   }  else {
 
-      # - have to write all json
-      fldQ$composeJson <-
-        'json(\'{"_id":"\' || _id || \'", \' || LTRIM(json(json), \'{\'))'
+    # - have to write all json
+    fldQ$composeJson <-
+      'json(\'{"_id":"\' || _id || \'", \' || LTRIM(json(json), \'{\'))'
 
   }
 
@@ -1313,28 +1313,47 @@ docdb_query.src_duckdb <- function(src, key, query, ...) {
   # special case: return all fields if listfields != NULL
   if (!is.null(params$listfields)) {
 
-    # fallback but only for listfields
-    statement <- insObj('
-    WITH extracted AS (
-    SELECT _id
-    /** fldQ$extractFields **/
-    FROM "/** key **/")
-    SELECT _id, json
-    FROM extracted
-    WHERE  (
-    /** fldQ$selectCondition **/
-    );')
+    if (!length(fldQ$jqrWhere)) {
 
-    fldQ$jqrWhere <- ifelse(
-      length(fldQ$jqrWhere), paste0(fldQ$jqrWhere, " | ", jqFieldNames), jqFieldNames)
+      statement <- insObj('
+        WITH extracted AS (
+        SELECT _id
+        /** fldQ$extractFields **/
+        FROM "/** key **/")
+        SELECT json_structure(json)
+        FROM extracted
+        WHERE  (
+        /** fldQ$selectCondition **/
+        );')
 
+      fldQ$jqrWhere <- jqFieldNames
+
+    } else {
+
+      statement <- insObj('
+        WITH extracted AS (
+        SELECT _id
+        /** fldQ$extractFields **/
+        FROM "/** key **/")
+        SELECT json
+        FROM extracted
+        WHERE  (
+        /** fldQ$selectCondition **/
+       );')
+
+      fldQ$jqrWhere <- paste0(fldQ$jqrWhere, " | ", jqFieldNames)
+
+      n <- -1L
+
+    }
+
+    # process
     fields <- unique(processDbGetQuery(
       getData = 'paste0(DBI::dbGetQuery(conn = src$con,
-                 statement = statement, n = n)[["json"]], "")',
+                 statement = statement, n = n)[[1]], "")',
       jqrWhere = fldQ$jqrWhere)[["out"]])
 
-    # mangle "friends.0", "friends.0.id"
-    fields <- unique(gsub("[.][0-9]+", "", fields))
+    # clean
     fields <- fields[fields != "_id" & fields != ""]
 
     # return field names
@@ -1575,8 +1594,8 @@ processIncludeFields <- function(
     #    if a field cannot be found, but takes care of boolean because
     #    "It is an error to use length on a boolean" and then goes
     #    recursively into arrays
-    'def m1: . | (if type != "boolean" and length == 0 then null else
-                 (if type == "array" then (.[] | m1) else [.][] end) end); ',
+    'def m1: . | (if (type == "array" or type == "object" or type == "string") and
+     length == 0 then null else (if type == "array" then (.[] | m1) else [.][] end) end); ',
     # m2 provides a final scalar unless there are several elements
     'def m2: . | (if length > 1 then [.][] else .[] end); ')
 
