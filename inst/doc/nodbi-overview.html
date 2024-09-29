@@ -468,36 +468,34 @@ created.</p>
 <span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co"># get all documents, irrespective of schema</span></span>
 <span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="fu">as_tibble</span>(<span class="fu">docdb_get</span>(src, key))</span>
 <span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; # A tibble: 137 × 31</span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;    `_id`             url   args  headers$Host origin    id destination_addresses</span></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;             &lt;chr&gt; &lt;df[&gt; &lt;chr&gt;        &lt;chr&gt;  &lt;int&gt; &lt;list&gt;               </span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;  1 3dd925f8-4ac6-11… http…       httpbin.org  143.1…     0 &lt;NULL&gt;               </span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;  2 3dd9260c-4ac6-11… http…       httpbin.org  143.1…     1 &lt;NULL&gt;               </span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;  3 3dd92616-4ac6-11… http…       httpbin.org  143.1…     2 &lt;NULL&gt;               </span></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  4 3dd92617-4ac6-11… http…       httpbin.org  143.1…     3 &lt;NULL&gt;               </span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;  5 3dd92620-4ac6-11… http…       httpbin.org  143.1…     4 &lt;NULL&gt;               </span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt;  6 3dd92621-4ac6-11… http…       httpbin.org  143.1…     5 &lt;NULL&gt;               </span></span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt;  7 3dd92622-4ac6-11… http…       httpbin.org  143.1…     6 &lt;NULL&gt;               </span></span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt;  8 3dd9262a-4ac6-11… http…       httpbin.org  143.1…     7 &lt;NULL&gt;               </span></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt;  9 3dd9262b-4ac6-11… http…       httpbin.org  143.1…     8 &lt;NULL&gt;               </span></span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; 10 3dd9262c-4ac6-11… http…       httpbin.org  143.1…     9 &lt;NULL&gt;               </span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;    `_id`     isActive balance   age eyeColor name  email about registered tags  </span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;     &lt;lgl&gt;    &lt;chr&gt;   &lt;int&gt; &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;      &lt;list&gt;</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;  1 5cd67853… TRUE     $2,412…    20 blue     Kris… kris… &quot;Sin… 2017-07-1… &lt;chr&gt; </span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;  2 5cd67853… FALSE    $3,400…    20 brown    Rae … raec… &quot;Nis… 2018-12-1… &lt;chr&gt; </span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;  3 5cd67853… TRUE     $1,161…    22 brown    Pace… pace… &quot;Eiu… 2018-08-1… &lt;chr&gt; </span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  4 5cd67853… FALSE    $2,579…    30 brown    Will… will… &quot;Nul… 2018-02-1… &lt;chr&gt; </span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;  5 5cd67853… FALSE    $3,808…    23 green    Lacy… lacy… &quot;Sun… 2014-08-0… &lt;chr&gt; </span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt;  6 6faccf10… NA       &lt;NA&gt;       NA &lt;NA&gt;     &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; &lt;NA&gt;       &lt;NULL&gt;</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt;  7 6faccf24… NA       &lt;NA&gt;       NA &lt;NA&gt;     &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; &lt;NA&gt;       &lt;NULL&gt;</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt;  8 6faccf25… NA       &lt;NA&gt;       NA &lt;NA&gt;     &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; &lt;NA&gt;       &lt;NULL&gt;</span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt;  9 6faccf2e… NA       &lt;NA&gt;       NA &lt;NA&gt;     &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; &lt;NA&gt;       &lt;NULL&gt;</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; 10 6faccf2f… NA       &lt;NA&gt;       NA &lt;NA&gt;     &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; &lt;NA&gt;       &lt;NULL&gt;</span></span>
 <span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; # ℹ 127 more rows</span></span>
-<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; # ℹ 27 more variables: headers$`X-Amzn-Trace-Id` &lt;chr&gt;, $`User-Agent` &lt;chr&gt;,</span></span>
-<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; #   $Accept &lt;chr&gt;, origin_addresses &lt;list&gt;, rows &lt;list&gt;, status &lt;chr&gt;,</span></span>
-<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; #   isActive &lt;lgl&gt;, balance &lt;chr&gt;, age &lt;int&gt;, eyeColor &lt;chr&gt;, name &lt;chr&gt;,</span></span>
-<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co">#&gt; #   email &lt;chr&gt;, about &lt;chr&gt;, registered &lt;chr&gt;, tags &lt;list&gt;, friends &lt;list&gt;,</span></span>
-<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co">#&gt; #   mpg &lt;dbl&gt;, cyl &lt;int&gt;, disp &lt;dbl&gt;, hp &lt;int&gt;, drat &lt;dbl&gt;, wt &lt;dbl&gt;,</span></span>
-<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="co">#&gt; #   qsec &lt;dbl&gt;, vs &lt;int&gt;, am &lt;int&gt;, gear &lt;int&gt;, carb &lt;int&gt;</span></span>
-<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a></span>
-<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co"># get just 2 documents using limit and note that</span></span>
-<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="co"># only fields for these documents are returned</span></span>
-<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a><span class="fu">as_tibble</span>(<span class="fu">docdb_get</span>(src, key, <span class="at">limit =</span> <span class="dv">2</span><span class="dt">L</span>))</span>
-<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 6</span></span>
-<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt;   `_id`                                url       args  headers$Host origin    id</span></span>
-<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                                &lt;chr&gt;     &lt;df[&gt; &lt;chr&gt;        &lt;chr&gt;  &lt;int&gt;</span></span>
-<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt; 1 3dd925f8-4ac6-11ef-a0f9-acbc328130bb https://…       httpbin.org  143.1…     0</span></span>
-<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="co">#&gt; 2 3dd9260c-4ac6-11ef-a0f9-acbc328130bb https://…       httpbin.org  143.1…     1</span></span>
-<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a><span class="co">#&gt; # ℹ 3 more variables: headers$`X-Amzn-Trace-Id` &lt;chr&gt;, $`User-Agent` &lt;chr&gt;,</span></span>
-<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a><span class="co">#&gt; #   $Accept &lt;chr&gt;</span></span></code></pre></div>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; # ℹ 21 more variables: friends &lt;list&gt;, url &lt;chr&gt;, args &lt;df[,0]&gt;,</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; #   headers &lt;df[,4]&gt;, origin &lt;chr&gt;, id &lt;int&gt;, destination_addresses &lt;list&gt;,</span></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; #   origin_addresses &lt;list&gt;, rows &lt;list&gt;, status &lt;chr&gt;, mpg &lt;dbl&gt;, cyl &lt;int&gt;,</span></span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co">#&gt; #   disp &lt;dbl&gt;, hp &lt;int&gt;, drat &lt;dbl&gt;, wt &lt;dbl&gt;, qsec &lt;dbl&gt;, vs &lt;int&gt;, am &lt;int&gt;,</span></span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co">#&gt; #   gear &lt;int&gt;, carb &lt;int&gt;</span></span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a></span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co"># get just 2 documents using limit and note that</span></span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co"># only fields for these documents are returned</span></span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="fu">as_tibble</span>(<span class="fu">docdb_get</span>(src, key, <span class="at">limit =</span> <span class="dv">2</span><span class="dt">L</span>))</span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 11</span></span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt;   `_id`       isActive balance   age eyeColor name  email about registered tags </span></span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;       &lt;lgl&gt;    &lt;chr&gt;   &lt;int&gt; &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;      &lt;lis&gt;</span></span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="co">#&gt; 1 5cd678530d… TRUE     $2,412…    20 blue     Kris… kris… Sint… 2017-07-1… &lt;chr&gt;</span></span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt; 2 5cd678531b… FALSE    $3,400…    20 brown    Rae … raec… Nisi… 2018-12-1… &lt;chr&gt;</span></span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: friends &lt;list&gt;</span></span></code></pre></div>
 </div>
 <div id="docdb_query" class="section level3">
 <h3>docdb_query</h3>

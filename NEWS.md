@@ -1,3 +1,9 @@
+# nodbi 0.10.7
+
+## Changes
+* uses new features of `duckdb` 1.11.0 for refactoring of `docdb_query()`, accelerating queries
+* accelerated creating and updating from file
+
 # nodbi 0.10.6
 
 ## Changes
