@@ -37,9 +37,10 @@
 #' pointing to a field nested within another, e.g. `friends.id` in
 #' the example.
 #'
-#' @return Data frame with requested documents, may have nested
-#'  lists in columns; `NULL` if no documents could be found.
-#'  If `listfields` is specified: a vector of all field names
+#' @return Data frame with requested documents, one per row,
+#'  may have nested lists in columns;
+#'  `NULL` if no documents could be found.
+#'  If `listfields` is specified: vector of all field names
 #'  in dot path notation.
 #'
 #' @export
@@ -83,11 +84,13 @@ docdb_query <- function(src, key, query, ...) {
     query <- "{}"
   }
 
+  # mangle parameters
+  params <- list(...)
+
   # query can be empty but then fields should not be empty
   if (jsonlite::minify(query) == '{}') {
 
-    # mangle parameters
-    params <- list(...)
+    # divert to docdb_get
     if (is.null(params$listfields) &&
         (is.null(params$fields) ||
          jsonlite::minify(params$fields) == '{}')) {
@@ -107,14 +110,22 @@ docdb_query <- function(src, key, query, ...) {
       # dispatch
       return(do.call(docdb_get, list(src = src, key = key, limit = limit, params)))
 
-    }}
+    }
+  }
+
+  # check field formats
+  if (!is.null(params$fields) &&
+      (jsonlite::minify(params$fields) != '{}') &&
+      (any(sapply(jsonlite::fromJSON(params$fields), typeof) != "integer"))) {
+    warning(
+      "Parameter fields should only have 0 or 1, as integers (not characters)",
+      call. = FALSE)
+  }
 
   # dispatch
   UseMethod("docdb_query", src)
 
 }
-
-
 
 #' @export
 docdb_query.src_couchdb <- function(src, key, query, ...) {
@@ -209,7 +220,7 @@ docdb_query.src_couchdb <- function(src, key, query, ...) {
   }
 
   # - add selector, limit and close query
-  # TODO jqrWhere step should limit the final number of documents
+  # TODO jqrWhere should be the step to limit the final number of documents
   query <- paste0('{"selector": ', query, ', "limit": ', limit, '}')
 
 
@@ -359,6 +370,13 @@ docdb_query.src_elastic <- function(src, key, query, ...) {
   docids <- docids[sapply(docids, "[[", "_score") >= 1.0]
   docids <- sort(sapply(docids, "[[", "_id"))
   if (is.null(docids)) return(NULL)
+  if ((query == "*") &&
+      (length(fldQ$includeFields) == 1) &&
+      (fldQ$includeFields == "_id")) return(
+        data.frame(
+          `_id` = docids,
+          check.names = FALSE,
+          stringsAsFactors = FALSE))
 
   # - debug
   if (options()[["verbose"]]) {
@@ -806,10 +824,12 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
       ii <- stringi::stri_replace_all_regex(ins, "\"(.+?)\"\\) IN \\((.+?) \\)", "$2")
       ii <- trimws(ii)
       ii <- stringi::stri_split_regex(ii, ifelse(isString, "', ", ", "))[[1]]
-      ii <- stringi::stri_replace_all_regex(ii, "^'|'$", "")
+      ii <- stringi::stri_replace_all_regex(ii, "^'|'$", "") # start or end delimiters
+      # strings are compared at their full length, cannot use anchors, see above
+      if (any(is.na(suppressWarnings(as.numeric(ii))))) ii <- paste0('(\\["|,")', ii, '(",|"\\])')
 
       # https://sqlite.org/src/file?filename=ext/misc/regexp.c
-      ii <- paste0("\"$.", i, "\") REGEXP '", paste0(ii, collapse = "|"), "'")
+      ii <- paste0("\"$.", i, "\") REGEXP '", paste0("(", ii, ")", collapse = "|"), "'")
       fldQ$queryCondition <- stringi::stri_replace_all_fixed(
         fldQ$queryCondition, ins, ii, vectorize_all = TRUE
       )
@@ -1209,7 +1229,8 @@ docdb_query.src_duckdb <- function(src, key, query, ...) {
   }
 
   # - if not explicitly excluded, keep _id in output
-  if (!any(fldQ$excludeFields == "_id") && length(fldQ$includeFields)) fldQ$includeFields <-
+  if (!any(fldQ$excludeFields == "_id") &&
+      length(fldQ$includeFields)) fldQ$includeFields <-
     unique(c(fldQ$includeFields, "_id"))
 
 
@@ -1356,7 +1377,7 @@ docdb_query.src_duckdb <- function(src, key, query, ...) {
         SELECT _id
         /** fldQ$extractFields **/
         FROM "/** key **/")
-        SELECT DISTINCT json_structure(json)
+        SELECT DISTINCT json_structure(json) AS json
         FROM extracted
         WHERE  (
         /** fldQ$selectCondition **/
@@ -1367,7 +1388,7 @@ docdb_query.src_duckdb <- function(src, key, query, ...) {
     # process
     fields <- unique(processDbGetQuery(
       getData = 'paste0(DBI::dbGetQuery(conn = src$con,
-                 statement = statement, n = n)[[1]], "")',
+                 statement = statement, n = n)[["json"]], "")',
       jqrWhere = fldQ$jqrWhere
     )[["out"]])
 
@@ -1494,6 +1515,11 @@ processDbGetQuery <- function(
     # early exit
     if (file.size(tjname) <= 2L) return(NULL)
 
+    # debug
+    if (options()[["verbose"]]) {
+      message("NDJSON lines: ", R.utils::countLines(tjname), "\n")
+    }
+
     # swap file name
     tfname <- tjname
 
@@ -1595,7 +1621,7 @@ processIncludeFields <- function(
   # {"_id": "5cd67853f841025e65ce0ce2", "friends": {"id": [0, 1, 2]}}
   #
   # - script:
-  # "{\"_id\", \"friends.id\": [.\"friends\" | m1 | .\"id\" ] | m2}"
+  # "{\"_id\", \"friends.id\": [.\"friends\" | m1 | .\"id\" ] | <see below>}"
   #
   # - output:
   # {"_id", "friends.id": [0, 1, 2]}
@@ -1606,7 +1632,7 @@ processIncludeFields <- function(
   # {"_id": "5cd67853f841025e65ce0ce2", "friends.id": [0, 1, 2]}
   #
   # - script:
-  # "{\"_id\", \"friends.id\": [.\"friends\".\"id\"] | m2}"
+  # "{\"_id\", \"friends.id\": [.\"friends\".\"id\"] | <see below>}"
   #
   # - output:
   # {"_id", "friends.id": [0, 1, 2]}
@@ -1615,11 +1641,10 @@ processIncludeFields <- function(
     # m1 replaces missing values with null to allow further processing
     #    if a field cannot be found, but takes care of boolean because
     #    "It is an error to use length on a boolean" and then goes
-    #    recursively into arrays
+    #    recursively into arrays; same as in digestFields() in zzz.R
     'def m1: . | (if (type == "array" or type == "object" or type == "string") and
-     length == 0 then null else (if type == "array" then (.[] | m1) else [.][] end) end); ',
-    # m2 provides a final scalar unless there are several elements
-    'def m2: . | (if length > 1 then [.][] else .[] end); ')
+     length == 0 then null else (if type == "array" then (.[] | m1) else [.][] end) end); '
+  )
 
   if (!length(extractedFields)) {
 
@@ -1658,65 +1683,128 @@ processIncludeFields <- function(
 
       subFields <- subFields[sapply(subFields, length) >= 1L]
 
-    }
+    } # setequal
 
-  }
+  } # extractedFields
 
   # keep _id even if not specified, can be
   # removed with _id:0 in subsequent step
-  jqFields <- '"_id"'
-
-  if (length(subFields)) jqFields <-
-    paste0(jqFields, ", ", collapse = "")
-
+  jqFields <- paste0(sapply(
+    subFields[subFields != "_id"],
+    function(s) {
+      # used for postgres which already
+      # extracts nested fields by SQL
+      if (length(s) == 1L) return(paste0(
+        '"', s, '": [."', s, '" | m1 ] '
+      ))
+      # other cases
+      # -first item
+      k <- paste0('"', s[1], '')
+      v <- paste0(' [ ."', s[1], '" | m1 | ')
+      # - any next item(s)
+      for (i in (seq_len(length(s) - 2) + 1)) {
+        k <- paste0(k, '.', s[i], '')
+        v <- paste0(v, '."', s[i], '" | m1 | ')
+      }
+      # - last item
+      k <- paste0(k, '.', s[length(s)], '": ')
+      v <- paste0(v, '."', s[length(s)], '" | m1 ] ')
+      # - combine items
+      return(paste0(k, v))
+    }, USE.NAMES = FALSE),
+    collapse = ", ")
+  #
   jqFields <- paste0(
-    jqFcts, "{",
-    paste0(c(jqFields, paste0(
-      sapply(
-        subFields,
-        function(s) {
-          # used for postgres which already
-          # extracts nested fields by SQL
-          if (length(s) == 1L) return(paste0(
-            '"', s, '": [."', s, '" | m1 ] | m2 '
-          ))
-          # other cases
-          # -first item
-          k <- paste0('"', s[1], '')
-          v <- paste0(' [."', s[1], '" | m1 | ')
-          # - any next item(s)
-          for (i in (seq_len(length(s) - 2) + 1)) {
-            k <- paste0(k, '.', s[i], '')
-            v <- paste0(v, '."', s[i], '" | m1 | ')
-          }
-          # - last item
-          k <- paste0(k, '.', s[length(s)], '": ')
-          v <- paste0(v, '."', s[length(s)], '" | m1 ] | m2 ')
-          # - combine items
-          return(paste0(k, v))
-        }, USE.NAMES = FALSE),
-      collapse = ", ")), collapse = ""), "}")
+    ifelse(nchar(jqFields), jqFcts, ""),
+    '{"_id\": ."_id"',
+    ifelse(nchar(jqFields), ", ", ""),
+    jqFields, "}")
 
   # debug
   if (options()[["verbose"]]) {
     message("JQ processOutput: ", jqFields, "\n")
   }
 
-  # early return
-  if (is.null(tjname)) return(
-    jsonlite::stream_in(
-      textConnection(
-        jqr::jq(file(tfname), jqFields)),
-      verbose = FALSE))
+  # get another file name
+  txname <- tempfile()
+  on.exit(try(unlink(txname), silent = TRUE), add = TRUE)
 
   # write data for further processing
   jqr::jq(
     file(tfname),
     jqFields,
-    out = tjname
+    out = txname
   )
 
-  # early exit
-  if (file.size(tjname) <= 2L) return(NULL)
+  # get lengths to see which simplification to apply
+  subFields <- sapply(subFields, function(i) paste0(i, collapse = "."))
+  subFields <- subFields[subFields != "_id"]
+  fieldsSingleton <- NULL
+
+  if (length(subFields)){
+
+    fieldsSingleton <- jqr::jq(
+      file(txname),
+      paste0('{', paste0(
+        '"', subFields, '": ."', subFields, '" | length ', collapse = ", "),
+        '}')
+    )
+
+    fieldsSingleton <- jsonlite::stream_in(
+      textConnection(fieldsSingleton), verbose = FALSE)
+
+    # important determination for type of simplification
+    fieldsSingleton <- sapply(fieldsSingleton, function(i)
+      all(i == 1L) && (is.atomic(i) || (length(i) > 1L)))
+
+  }
+
+  # apply simplification
+  if (length(fieldsSingleton)) {
+
+    jqFields <- paste0(
+      '{ "_id": ."_id", ',
+      paste0(
+        '"', subFields, '": ."', subFields, '"',
+        ifelse(fieldsSingleton[subFields], ' | .[]', ' | [.][]'),
+        collapse = ", "),
+      ' }')
+
+    # debug
+    if (options()[["verbose"]]) {
+      message("JQ processOutput: ", jqFields, "\n")
+    }
+
+    # early return
+    if (is.null(tjname)) return(
+      jsonlite::stream_in(
+        textConnection(
+          jqr::jq(file(txname), jqFields)),
+        verbose = FALSE))
+
+    # write data for further processing
+    jqr::jq(
+      file(txname),
+      jqFields,
+      out = tjname
+    )
+
+    # early exit
+    if (file.size(tjname) <= 2L) return(NULL)
+
+  } else {
+
+    # early return
+    if (is.null(tjname)) return(
+      jsonlite::stream_in(file(txname),
+                          verbose = FALSE))
+
+    # early exit
+    if (file.size(txname) <= 2L) return(NULL)
+
+    # tjname is not null, thus
+    file.rename(txname, tjname)
+
+  }
 
 } # processIncludeFields

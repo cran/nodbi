@@ -97,21 +97,18 @@ test_that("docdb_create (ndjson)", {
   tmp <- dbSrcKey()
   src <- tmp$testSrc
   key <- tmp$testKey
+  tF <- testFile()
   on.exit(try({
     docdb_delete(src = src, key = key)
     if (any(c(inherits(src, "src_sqlite"), inherits(src, "src_postgres")))) DBI::dbDisconnect(src$con, shutdown = TRUE)
     if (inherits(src, "src_duckdb")) duckdb::dbDisconnect(src$con, shutdown = TRUE)
-    rm(src, key, tmp)
+    rm(src, key, tmp, tF)
   }, silent = TRUE), add = TRUE)
-
-  # get temporary local files with ndjson
-  tF <- testFile()
-  tF2 <- testFile2()
 
   # tests
   expect_equal(docdb_create(src = src, key = key, value = tF), 5L)
   expect_equal(suppressWarnings(docdb_create(src = src, key = key, value = tF)), 0L)
-  expect_equal(docdb_create(src = src, key = key, value = tF2), nrow(diamonds))
+  expect_equal(docdb_create(src = src, key = key, value = testFile2()), nrow(diamonds))
 
   # clean up
   expect_true(docdb_delete(src = src, key = key))
@@ -153,6 +150,7 @@ test_that("docdb_query", {
   expect_warning(docdb_query(src = src, key = key, query = "", fields = '{"_id":1}'), "deprecated")
   expect_equal(dim(docdb_query(src = src, key = key, query = '{}')), c(7L, 15L))
   expect_equal(nrow(docdb_query(src = src, key = key, query = '{}', limit = 3L)), 3L)
+  expect_message(docdb_query(src = src, key = key, query = '{}'), "calling docdb_get")
   #
   expect_error(docdb_query(src = src, key = key, query = '{}', fields = "NOTJSON"))
   expect_equal(dim(docdb_query(src = src, key = key, query = '{}', fields = '{}')), c(7L, 15L))
@@ -214,7 +212,9 @@ test_that("docdb_query", {
   expect_equal(dim(docdb_query(src = src, key = key, query = '{}', fields = '{"rows.elements.distance.somevalue": 1}')), c(2L, 2L))
   expect_equal(nrow(docdb_query(src = src, key = key, query = '{}', fields = '{"destination_addresses": 1}')), 2L)
   expect_equal(length(unlist(docdb_query(
-    src = src, key = key, query = '{"origin_addresses": {"$in": ["Santa Barbara, CA, USA"]}}', fields = '{"destination_addresses": 1, "_id": 0}'))), 3L)
+    src = src, key = key,
+    query = '{"origin_addresses": {"$in": ["Santa Barbara, CA, USA"]}}',
+    fields = '{"destination_addresses": 1, "_id": 0}'))), 3L)
   # note: str, typeof differ by database backend
   expect_true(docdb_delete(src = src, key = key))
 
@@ -260,12 +260,11 @@ test_that("docdb_update", {
   tmp <- dbSrcKey()
   src <- tmp$testSrc
   key <- tmp$testKey
-  tF <- testFile()
   on.exit(try({
     docdb_delete(src = src, key = key)
     if (any(c(inherits(src, "src_sqlite"), inherits(src, "src_postgres")))) DBI::dbDisconnect(src$con, shutdown = TRUE)
     if (inherits(src, "src_duckdb")) duckdb::dbDisconnect(src$con, shutdown = TRUE)
-    rm(src, key, tmp, tF)
+    rm(src, key, tmp)
   }, silent = TRUE), add = TRUE)
 
   expect_equal(docdb_create(src = src, key = key, value = testDf), nrow(testDf))
@@ -316,6 +315,8 @@ test_that("docdb_update", {
   expect_equal(docdb_query(src = src, key = key, query = '{"_id":"Valiant"}', fields = '{"vs":1}')[["vs"]], 79L)
   #
   # from file
+  tF <- testFile()
+  #
   expect_equal(docdb_create(src = src, key = key, value = tF), 5L)
   expect_equal(docdb_update(src = src, key = key, value = tF, query = '{}'), 5L)
   expect_equal(docdb_update(src = src, key = key, value = jqr::jq(file(tF), " del ( ._id) "), query = '{"email": {"$regex": ".+"}}'), 5L)

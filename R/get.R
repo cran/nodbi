@@ -15,7 +15,7 @@
 #' - PostgreSQL: ignored
 #' - DuckDB: ignored
 #'
-#' @return A data frame, one document per row
+#' @return Data frame, one document per row
 #'
 #' @export
 #'
@@ -43,6 +43,9 @@ docdb_get <- function(src, key, limit = NULL, ...) {
 #' @export
 docdb_get.src_couchdb <- function(src, key, limit = NULL, ...) {
 
+  # early return if container does not exist
+  if (!any(docdb_list(src) == key)) return(NULL)
+
   jsonlite::fromJSON(
     # get data
     sofa::db_alldocs(
@@ -62,6 +65,9 @@ docdb_get.src_couchdb <- function(src, key, limit = NULL, ...) {
 
 #' @export
 docdb_get.src_elastic <- function(src, key, limit = NULL, ...) {
+
+  # early return if container does not exist
+  if (!any(docdb_list(src) == key)) return(NULL)
 
   # adjust parameter
   if (is.null(limit)) limit <- 10000L
@@ -146,6 +152,9 @@ docdb_get.src_duckdb <- function(src, key, limit = NULL, ...) {
 #' @keywords internal
 #' @noRd
 sqlGet <- function(src, key, limit = NULL, getFunction, ...) {
+
+  # early return if container does not exist
+  if (!any(docdb_list(src) == key)) return(NULL)
 
   # set limit if not null
   n <- -1L

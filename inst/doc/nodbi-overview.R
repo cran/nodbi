@@ -39,8 +39,11 @@ docdb_exists(src = src, key = key)
 # the container specified in "key" parameter
 docdb_create(src = src, key = key, value = mtcars)
 
-# load additionally 98 NDJSON records
-docdb_create(src, key, "https://httpbin.org/stream/98")
+# do not run during testing
+if (FALSE) {
+  # load additionally 98 NDJSON records
+  docdb_create(src, key, "https://httpbin.org/stream/98")
+}
 
 # load additionally mapdata as list
 docdb_create(src, key, jsonlite::fromJSON(mapdata, simplifyVector = FALSE))
@@ -59,16 +62,18 @@ docdb_list(src = src)
 docdb_create(src, key, value = mtcars)
 
 ## -----------------------------------------------------------------------------
-# load library for more
+# use library for more
 # readable print output
-library(tibble)
-
-# get all documents, irrespective of schema
-as_tibble(docdb_get(src, key))
-
-# get just 2 documents using limit and note that
-# only fields for these documents are returned
-as_tibble(docdb_get(src, key, limit = 2L))
+if (require(tibble)) {
+  
+  # get all documents, irrespective of schema
+  as_tibble(docdb_get(src, key))
+  
+  # get just 2 documents using limit and note that
+  # only fields for these documents are returned
+  as_tibble(docdb_get(src, key, limit = 2L))
+  
+}
 
 ## -----------------------------------------------------------------------------
 # query for some documents

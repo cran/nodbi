@@ -25,8 +25,10 @@
 #' print(con)
 #' }
 #'
-src_sqlite <- function(dbname = ":memory:",
-                       ...) {
+src_sqlite <- function(dbname = ":memory:", ...) {
+
+  # check minimum version
+  pkgNeeded("RSQLite", "2.3.6")
 
   # open connection
   con <- DBI::dbConnect(
@@ -36,6 +38,17 @@ src_sqlite <- function(dbname = ":memory:",
 
   # enable regular expressions
   RSQLite::initRegExp(db = con)
+
+  # enable uuid for csv lines import
+  featUuid <- pkgNeeded("RSQLite", "2.3.7.9014", FALSE)
+  if (featUuid) {
+    RSQLite::initExtension(db = con, extension = "uuid")
+    message(
+      "RSQLite version has enabled accelerating ",
+      "docdb_create() and docdb_update() functions ",
+      "when used with value = <NDJSON file name>."
+    )
+  }
 
   # set timeout for concurrency to 10s
   DBI::dbExecute(con, "PRAGMA busy_timeout = 10000;")
@@ -48,16 +61,18 @@ src_sqlite <- function(dbname = ":memory:",
   )
 
   # return standard nodbi structure
-  structure(list(con = con,
-                 dbname = dbname,
-                 ...),
-            class = c("src_sqlite", "docdb_src"))
+  structure(list(
+    con = con,
+    dbname = dbname,
+    featUuid = featUuid,
+    ...),
+    class = c("src_sqlite", "docdb_src"))
 
 }
 
 #' @export
 print.src_sqlite <- function(x, ...) {
-  
+
   dbname <- x$dbname
   dbsize <- file.size(dbname)
   # RSQLite::rsqliteVersion() was introduced with
