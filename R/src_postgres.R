@@ -23,7 +23,6 @@
 #' Any root-level `_id` is extracted from the document(s) and used
 #' for column `_id`, otherwise a UUID is created as `_id`.
 #' The table is indexed on `_id`. A custom `plpgsql` function
-#' [jsonb_merge_patch()](https://github.com/ropensci/nodbi/blob/master/R/src_postgres.R#L60)
 #' is used for `docdb_update()`.
 #' The order of variables in data frames returned by `docdb_get()`
 #' and `docdb_query()` can differ from their order the input to
@@ -73,28 +72,29 @@ src_postgres <- function(dbname = "test",
   # add plpgsql function for docdb_update(), which should only raise
   # an error if the plpgsql extension is not installed in dbname
   out <- try(
-    # credits: Joao Haas, https://stackoverflow.com/a/65093455
-    DBI::dbExecute(conn = con, statement = 'CREATE OR REPLACE FUNCTION
-     jsonb_merge_patch("target" jsonb, "patch" jsonb)
-     RETURNS jsonb AS $$
-    BEGIN
-     RETURN COALESCE(jsonb_object_agg(
-      COALESCE("tkey", "pkey"),
-      CASE
-       WHEN "tval" ISNULL THEN "pval"
-       WHEN "pval" ISNULL THEN "tval"
-       WHEN jsonb_typeof("tval") != \'object\'
-        OR jsonb_typeof("pval") != \'object\' THEN "pval"
-       ELSE jsonb_merge_patch("tval", "pval")
-     END
-     ), \'{}\'::jsonb)
-    FROM jsonb_each("target") e1("tkey", "tval")
-    FULL JOIN jsonb_each("patch") e2("pkey", "pval")
-     ON "tkey" = "pkey"
-     WHERE jsonb_typeof("pval") != \'null\' OR "pval" ISNULL;
-    END;
-   $$ LANGUAGE plpgsql;
-  '), silent = TRUE)
+    DBI::dbExecute(conn = con, statement = "
+      CREATE OR REPLACE FUNCTION jsonb_patch(base jsonb, patch jsonb)
+      RETURNS jsonb LANGUAGE plpgsql AS $$
+      BEGIN
+        RETURN (
+          SELECT COALESCE(
+            JSONB_OBJECT_AGG(
+              COALESCE(k1, k2),
+              CASE
+                WHEN v1 IS NULL THEN v2
+                WHEN v2 IS NULL THEN v1
+                WHEN jsonb_typeof(v1) = 'object' AND
+                     jsonb_typeof(v2) = 'object'
+                THEN jsonb_patch(v1, v2)
+                ELSE v2
+              END
+            ), '{}'::jsonb)
+          FROM jsonb_each(base) AS b(k1, v1)
+          FULL JOIN jsonb_each(patch) AS p(k2, v2) ON k1 = k2
+          WHERE jsonb_typeof(v2) <> 'null' OR v2 IS NULL
+        );
+      END;
+      $$;"), silent = TRUE)
 
   if (inherits(out, "try-error") &&
       !grepl("tuple concurrently updated", out)) {
