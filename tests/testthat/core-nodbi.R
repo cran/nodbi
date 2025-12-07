@@ -50,7 +50,7 @@ test_that("docdb_create, docdb_exists, docdb_list, docdb_get, docdb_delete", {
 
   # testJson
   expect_equal(docdb_create(src = src, key = key, value = testJson), 5L)
-  expect_warning(suppressMessages(docdb_create(src = src, key = key, value = testJson)), "index|conflict|constraint|updated|duplicate|error|rapi") # _id violation
+  expect_warning(suppressMessages(docdb_create(src = src, key = key, value = testJson)), "index|conflict|constraint|updated|duplicate|rror|rapi") # _id violation
   expect_equal(dim(docdb_get(src = src, key = key)), c(5L, 11L))
   if (!inherits(src, "src_postgres")) expect_identical(
     docdb_get(src = src, key = key),
@@ -169,6 +169,7 @@ test_that("docdb_query", {
   expect_equal(dim(docdb_query(src = src, key = key, query = '{"name": {"$regex": "^[a-zA-Z]{3,4} "}}', fields = '{"name": 1, "age": 1, "_id": 0}')), c(3L, 2L))
   #
   expect_equal(dim(docdb_query(src = src, key = key, query = '{"$and": [{"email": {"$regex": "ac"}}, {"friends.name": "Dona Bartlett"}]}')), c(1L, 11L))
+  expect_equal(dim(docdb_query(src = src, key = key, query = '{"$or": [{"name": {"$in": ["Lacy Chen", "Rae Colon"]}}, {"friends.name": "Dona Bartlett"}]}')), c(3L, 11L))
   expect_equal(dim(docdb_query(src = src, key = key, query = '{"$and": [{"_id": {"$regex": "53"}}, {"friends.name": "Dona Bartlett"}]}')), c(1L, 11L))
   expect_equal(dim(docdb_query(src = src, key = key, query = '{"$and": [{"_id": {"$regex": "53"}}, {"friends.name": {"$regex": "Ba|La"}}]}')), c(2L, 11L))
   expect_equal(dim(docdb_query(src = src, key = key, query = '{"$and": [{"_id": {"$regex": "53"}}, {"friends.name": "Dona Bartlett"}]}')), c(1L, 11L))
@@ -216,6 +217,18 @@ test_that("docdb_query", {
     query = '{"origin_addresses": {"$in": ["Santa Barbara, CA, USA"]}}',
     fields = '{"destination_addresses": 1, "_id": 0}'))), 3L)
   # note: str, typeof differ by database backend
+  expect_true(docdb_delete(src = src, key = key))
+
+  # testFile2
+  expect_equal(docdb_create(src = src, key = key, value = testFile2()), nrow(diamonds))
+  if (!inherits(src, "src_elastic")) expect_equal(dim(
+    docdb_query(
+      # src_elastic currently limited to search in 10000L
+      # sequence of results cannot be predicted thus not tested
+      src = src, key = key,
+      query = "{\"clarity\": {\"$in\": [\"NOTME\", \"VS1\"]}}",
+      fields = "{\"cut\": 1, \"_id\": 1, \"clarity\": 1}"
+    )), c(8171L, 3L))
   expect_true(docdb_delete(src = src, key = key))
 
   # testDf
@@ -320,18 +333,20 @@ test_that("docdb_update", {
   expect_equal(docdb_create(src = src, key = key, value = tF), 5L)
   expect_equal(docdb_update(src = src, key = key, value = tF, query = '{}'), 5L)
   expect_equal(docdb_update(src = src, key = key, value = jqr::jq(file(tF), " del ( ._id) "), query = '{"email": {"$regex": ".+"}}'), 5L)
+  #
+  # with 2 duplicates in file
+  expect_true(docdb_update(src = src, key = key, value = testFile3(), query = '{}') %in% c(5L, 7L))
+  expect_true(all(unique(docdb_query(src = src, key = key, query = '{"_id": {"$regex": "^5cd"}}', fields = '{"_id":1, "name":1}')[[2]]) %in% c("NewName", "OldName")))
 
   # warnings and errors
   expect_warning(docdb_update(src = src, key = key, value = testJson, query = ""), "deprecated")
   expect_warning(docdb_update(src = src, key = key, value = tF, query = '{"_id": {"$regex": "[f-z]"}}'), "Ignoring the specified")
   expect_error(docdb_update(src = src, key = key, value = testJson2, query = '{"_id": {"$regex": "[f-z]"}}'), "Unequal number of documents")
 
-  # TODO
-
   # non-ascii characters
-  docdb_update(src = src, key = key, value = '{"_id": "Fiat 128", "a": "≥•", "b": "\\n•\\tióiño"}', query = '{}')
-  docdb_update(src = src, key = key, query = '{"_id": "Fiat 128"}', value = '{"b": "≥•", "a": "\\n•\\tióiño"}')
-  docdb_query(src = src, key = key, query = '{"_id": "Fiat 128"}', fields = '{"a":1, "b":1}')
+  expect_equal(docdb_update(src = src, key = key, value = '{"_id": "Fiat 128", "a": "≥•", "b": "\\n•\\tióiño"}', query = '{}'), 1L)
+  expect_equal(docdb_update(src = src, key = key, query = '{"_id": "Fiat 128"}', value = '{"b": "≥•", "a": "\\n•\\tióiño"}'), 1L)
+  expect_equal(docdb_query(src = src, key = key, query = '{"_id": "Fiat 128"}', fields = '{"a":1, "b":1}')[[2]], "\n•\tióiño")
 
   # from url
   skip_if(is.null(httpbin), "package webfakes missing")
