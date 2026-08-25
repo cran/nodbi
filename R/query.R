@@ -1,7 +1,7 @@
 #' Get documents or parts with filtering query
 #'
 #' Complements the databases' native query and filtering functions
-#' by using [jqr::jqr()].
+#' by using [jqr::jq()].
 #' If \code{query = "{}"} and neither `fields`
 #' nor `listfields` is specified, runs [docdb_get()].
 #'
@@ -30,8 +30,8 @@
 #'  CouchDB, PostgreSQL, and DuckDB.
 #'
 #' - Specify `listfields = TRUE` to return just the names of
-#' all fields, from all documents or from the maximum number of
-#' documents as specified in `limit`.
+#' all fields, from all documents corresponding to `query` or
+#' from the maximum number of documents as specified in `limit`.
 #'
 #' @note A dot in `query` or `fields` is interpreted as a dot path,
 #' pointing to a field nested within another, e.g. `friends.id` in
@@ -568,8 +568,9 @@ docdb_query.src_mongo <- function(src, key, query, ...) {
         # selective export using find
         src$con$find(
           query = query, fields = '{}', limit = n,
-          handler = function(x) jsonlite::stream_out(x, con = con, verbose = FALSE),
-          pagesize = 100L)
+          handler = function(x) jsonlite::stream_out(
+            x, con = con, pagesize = jlps, verbose = FALSE),
+          pagesize = jlps)
 
       }
 
@@ -665,6 +666,7 @@ docdb_query.src_mongo <- function(src, key, query, ...) {
     processExcludeFields(
       jsonlite::stream_in(
         file(tfname),
+        pagesize = jlps,
         verbose = FALSE),
       fldQ$excludeFields)
   )
@@ -693,9 +695,9 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
       length(fldQ$includeFields) == 1L &&
       fldQ$includeFields == "_id") {
 
-    statement <- insObj('
-    SELECT DISTINCT _id
-    FROM "/** key **/" GROUP BY _id;')
+    statement <- paste0(
+      "SELECT DISTINCT _id ",
+      "FROM \"", key, "\" GROUP BY _id;")
 
     return(DBI::dbGetQuery(
       conn = src$con,
@@ -706,7 +708,8 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
 
   # special case: return all fields
   # see below for handling queries
-  if (!is.null(params$listfields) & !length(fldQ$queryCondition)) {
+  if (!is.null(params$listfields) &
+      !length(fldQ$queryCondition)) {
 
     # statement
     statement <- insObj('
@@ -780,7 +783,7 @@ docdb_query.src_sqlite <- function(src, key, query, ...) {
   }
 
 
-  # - fields in SQL query to reduce rows sent into jq
+  # - put fields in SQL query to reduce rows sent into jq
   fldQ$jsonWhere <- "TRUE"
   if (length(tmpFields)) {
 
@@ -999,7 +1002,8 @@ docdb_query.src_postgres <- function(src, key, query, ...) {
   # - existsFields
   fldQ$existsFields <- paste0(
     sprintf("jsonb_path_exists(json, '$.\"%s\"')",
-            gsub('[.]', '"."', fldQ$includeFields[fldQ$includeFields != "_id"])), collapse = " OR ")
+            gsub('[.]', '"."', fldQ$includeFields[fldQ$includeFields != "_id"])),
+    collapse = " OR ")
   if (fldQ$existsFields == "") fldQ$existsFields <- "TRUE"
 
 
@@ -1014,6 +1018,8 @@ docdb_query.src_postgres <- function(src, key, query, ...) {
   # - adapt sql to postgresql functions
   for (i in fldQ$queryPaths[fldQ$queryPaths != "_id"]) {
 
+    # Checks whether the JSON path returns any item for the specified JSON value
+    # jsonb_path_exists('{"a":[1,2,3,4,5]}', '$.a[*] ? (@ >= $min && @ <= $max)', '{"min":2, "max":4}')
     fldQ$queryCondition <- gsub(
       paste0("(?<![.])(\"", i, "\" [INOTREGXP=!<>']+ .+?)( AND | NOT | OR |\\)*$)"),
       "jsonb_path_exists(json, \'$[*] ? (@.\\1)')\\2", # keep $[*]
@@ -1437,6 +1443,269 @@ docdb_query.src_duckdb <- function(src, key, query, ...) {
 }
 
 
+#' @export
+docdb_query.src_mariadb <- function(src, key, query, ...) {
+
+  # handle parameters
+  if (query == "") query <- "{}"
+  query <- jsonlite::minify(query)
+  params <- list(...)
+  n <- -1L
+  if (!is.null(params$limit)) n <- params$limit
+
+  # digest and mangle
+  fldQ <- digestFields(f = params$fields, q = query)
+
+  # - - - - - - - - -
+
+  # early return if only _id is requested
+  if (query == "{}" &&
+      length(fldQ$includeFields) == 1L &&
+      fldQ$includeFields == "_id") {
+
+    statement <- paste0(
+      "SELECT DISTINCT _id ",
+      "FROM `", key, "` GROUP BY _id;")
+
+    return(DBI::dbGetQuery(
+      conn = src$con,
+      n = n, statement = statement))
+
+  }
+
+  # - - - - - - - - -
+
+  # special case: return all fields
+  # see below for handling queries
+  if (!is.null(params$listfields) &
+      !length(fldQ$queryCondition)) {
+
+    # parameter use
+    limit <- ""
+    if (n != -1L) limit <- paste0("LIMIT ", n)
+
+    # statement
+    statement <- insObj('
+        WITH RECURSIVE
+            json_paths AS (
+           SELECT
+                t.json,
+                jt.key_name,
+                CONCAT (\'$.\', JSON_QUOTE (jt.key_name)) AS path,
+                jt.key_name AS full_key_path
+            FROM
+                (
+                SELECT DISTINCT json
+                FROM `/** key **/`
+                WHERE json IS NOT NULL
+                /** limit **/
+                ) AS t,
+            JSON_TABLE (
+                JSON_KEYS (t.json),
+                \'$[*]\' COLUMNS (key_name VARCHAR(255) PATH \'$\')
+            ) AS jt
+                UNION
+                SELECT
+                    jp.json,
+                    jt.key_name,
+                    CONCAT (jp.path, \'.\', JSON_QUOTE (jt.key_name)),
+                    CONCAT (jp.full_key_path, \'.\', jt.key_name)
+                FROM
+                    json_paths jp,
+                    JSON_TABLE (
+                        JSON_KEYS (JSON_EXTRACT (jp.json, jp.path)),
+                        \'$[*]\' COLUMNS (key_name VARCHAR(255) PATH \'$\')
+                    ) AS jt
+                WHERE JSON_TYPE (JSON_EXTRACT (jp.json, jp.path)) = \'OBJECT\'
+                UNION
+                SELECT
+                    jp.json,
+                    jt.key_name,
+                    CONCAT (jp.path, \'[*].\', JSON_QUOTE (jt.key_name)),
+                    CONCAT (jp.full_key_path, \'[*].\', jt.key_name)
+                FROM
+                    json_paths jp,
+                    JSON_TABLE (
+                        JSON_KEYS (JSON_EXTRACT (jp.json, CONCAT (jp.path, \'[0]\'))),
+                        \'$[*]\' COLUMNS (key_name VARCHAR(255) PATH \'$\')
+                    ) AS jt
+                WHERE JSON_TYPE (JSON_EXTRACT (jp.json, jp.path)) = \'ARRAY\'
+            )
+        SELECT DISTINCT full_key_path
+        FROM json_paths
+        ORDER BY full_key_path;
+   ')
+
+    # get all fullkeys and types
+    fields <- DBI::dbGetQuery(
+      conn = src$con,
+      statement = statement,
+      n = -1L)[["full_key_path"]]
+
+    # remove array elements "item[*].another"
+    fields <- unique(gsub("[*]", "", fields, fixed = TRUE))
+    fields <- fields[fields != "_id" & fields != ""]
+
+    # return field names
+    return(fields)
+  }
+
+  # - - - - - - - - -
+
+  # fields
+
+  # - select extracts or full json
+  if (length(fldQ$includeFields)) {
+
+    # handling that mariadb JSON_EXTRACT always returns array, but
+    # is needed since JSON_VALUE does not return 1-element arrays
+
+    origFields <- unique(c(fldQ$includeFields, fldQ$queryFields))
+    origFields <- origFields["_id" != origFields]
+    fldQ$selectFields <- gsub('[.]', '"."', origFields)
+
+    for (i in seq_along(fldQ$selectFields)) {
+
+      # compose
+      fldQ$selectFields[i] <- paste0(
+        '(CASE WHEN JSON_EXISTS(`/** key **/`.json, \'$."',
+        gsub('[.]', '[0].', fldQ$selectFields[i]), '"\') ',
+        'THEN JSON_EXTRACT(`/** key **/`.json, \'$."',
+        gsub('"[.]"', '"**."', fldQ$selectFields[i]), '"\') ',
+        "ELSE 'null' END) ")
+
+    }
+
+    # - construct json output
+
+    # wrap in path components to make jqr work
+    for (i in seq_along(origFields)) {
+      pathParts <- strsplit(origFields[i], ".", fixed = TRUE)[[1]]
+      origFields[i] <- paste0(
+        "'",
+        paste0('{"', pathParts, '": ', collapse = ""),
+        "', ",
+        fldQ$selectFields[i],
+        ", '",
+        paste0(rep("}", length(pathParts)), collapse = ""),
+        "'"
+      )
+    }
+    # remove outermost brackets
+    origFields <- sub("'\\{(.+)\\}'", "'\\1'", origFields)
+    fldQ$composeJson <- paste0(origFields, collapse = ", ', ', ")
+
+    # add _id
+    if ((!any("_id" == fldQ$excludeFields) &&
+         !any("_id" == fldQ$includeFields)) ||
+        any("_id" == fldQ$queryFields) ||
+        any("_id" == fldQ$includeFields)) fldQ$composeJson <- paste0(
+          "'\"_id\": \"', _id, '\"'",
+          ifelse(fldQ$composeJson == "", "", ", ', ', "),
+          fldQ$composeJson
+        )
+
+    fldQ$composeJson <- paste0(
+      "CONCAT('{', ", fldQ$composeJson, ", '}')")
+
+  } else {
+
+    # full json needed
+    fldQ$composeJson <-
+      "CONCAT('{\"_id\": \"', _id, '\", ', TRIM(LEADING '{' FROM json))"
+
+  }
+
+  # - put fields in SQL query to reduce rows sent into jq
+  fldQ$jsonWhere <- "TRUE"
+  fldQ$jsonWhere <- paste0(
+    sprintf("JSON_EXISTS(`/** key **/`.json, '$.\"%s\"')",
+            gsub('[.]', '"[0]."', unique(c(
+              fldQ$includeFields[fldQ$includeFields != "_id"],
+              fldQ$queryFields[fldQ$queryFields != "_id"]
+            )))),
+    collapse = " OR ")
+  if (fldQ$jsonWhere == "") fldQ$jsonWhere <- "TRUE"
+
+  # - - - - - - - - -
+
+  # - if query needs jqr, which for src_mariadb is
+  #   whenever there is a query specified by the
+  #   user, at any level of depth in the json structure,
+  #   since queries cannot sufficiently be translated
+  #   with SQ and JSON functions in MariaDB 12.
+  fldQ$jqrWhere <- character(0L)
+  if (length(fldQ$queryCondition)) fldQ$jqrWhere <- fldQ$queryJq
+  #
+  # special case: if no query and only root includeFields, no need for jq
+  if (!length(fldQ$queryCondition) &&
+      !length(fldQ$excludeFields) &&
+      length(fldQ$includeFields) &&
+      !any(grepl(".", fldQ$includeFields, fixed = TRUE))) fldQ$includeFields <-
+    character(0L)
+  #
+  # special case: jq needed, _id not in excludeFields,
+  # thus _id needs to be in includeFields
+  if (length(fldQ$queryCondition) &&
+      length(fldQ$includeFields) &&
+      length(fldQ$excludeFields) &&
+      !any("_id" == fldQ$includeFields) &&
+      !any("_id" == fldQ$excludeFields)) fldQ$includeFields <- c(
+        "_id", fldQ$includeFields)
+
+  # statement
+  statement <- insObj('
+      SELECT /** fldQ$composeJson **/
+      AS json FROM `/** key **/`
+      WHERE /** fldQ$jsonWhere **/
+      ;')
+
+  # - - - - - - - - -
+
+  # early return if listfields
+  # with a query
+  if (!is.null(params$listfields)) {
+
+    if (n != -1L) message(
+      "Cannot use parameter 'limit', have to ",
+      "analyse all documents in the collection.")
+
+    # jq function to obtain dot paths
+    fldQ$jqrWhere <- paste0(
+      ifelse(
+        length(fldQ$jqrWhere),
+        fldQ$jqrWhere,
+        "."),
+      " | ", jqFieldNames)
+
+    # process
+    fields <- unique(processDbGetQuery(
+      getData = 'paste0(DBI::dbGetQuery(conn = src$con,
+                 statement = statement, n = -1)[["json"]], "")',
+      jqrWhere = fldQ$jqrWhere)[["out"]])
+
+    # finalise
+    fields <- unique(fields[fields != "" & fields != "_id"])
+
+    # return field names
+    return(sort(fields))
+
+  }
+
+  # - - - - - - - - -
+
+  # regular processing
+  return(processDbGetQuery(
+    getData = 'paste0(DBI::dbGetQuery(conn = src$con,
+               statement = statement, n = n)[["json"]], "")',
+    jqrWhere = fldQ$jqrWhere,
+    includeFields = fldQ$includeFields,
+    excludeFields = fldQ$excludeFields
+  ))
+
+}
+
+
 ## helpers --------------------------------------
 
 
@@ -1457,8 +1726,8 @@ processDbGetQuery <- function(
 
   # debug
   if (options()[["verbose"]]) {
-    eval.parent(parse(text = 'if (exists("statement")) message("\nSQL: ", statement, "\n")'))
-    eval.parent(parse(text = 'if (exists("query")) message("\nDB: ", query, "\n")'))
+    eval.parent(parse(text = 'if (exists("statement")) message("\nSQL: ", statement)'))
+    eval.parent(parse(text = 'if (exists("query")) message("\nQUERY: ", query, "\n")'))
   }
 
 
@@ -1471,6 +1740,7 @@ processDbGetQuery <- function(
         jsonlite::stream_in(
           textConnection(
             eval.parent(parse(text = getData))),
+          pagesize = jlps,
           verbose = FALSE))
 
   # use duckdb internal function
@@ -1534,6 +1804,7 @@ processDbGetQuery <- function(
           jsonlite::stream_in(
             textConnection(
               jqr::jq(file(tfname), jqrWhere)),
+            pagesize = jlps,
             verbose = FALSE))
 
     # get another file name
@@ -1600,6 +1871,7 @@ processDbGetQuery <- function(
       processExcludeFields(
         jsonlite::stream_in(
           file(tfname),
+          pagesize = jlps,
           verbose = FALSE),
         excludeFields)
     )
@@ -1787,7 +2059,9 @@ processIncludeFields <- function(
     )
 
     fieldsSingleton <- jsonlite::stream_in(
-      textConnection(fieldsSingleton), verbose = FALSE)
+      textConnection(fieldsSingleton),
+      pagesize = jlps,
+      verbose = FALSE)
 
     # important determination for type of simplification
     fieldsSingleton <- sapply(fieldsSingleton, function(i)
@@ -1816,6 +2090,7 @@ processIncludeFields <- function(
       jsonlite::stream_in(
         textConnection(
           jqr::jq(file(txname), jqFields)),
+        pagesize = jlps,
         verbose = FALSE))
 
     # write data for further processing
@@ -1832,8 +2107,10 @@ processIncludeFields <- function(
 
     # early return
     if (is.null(tjname)) return(
-      jsonlite::stream_in(file(txname),
-                          verbose = FALSE))
+      jsonlite::stream_in(
+        file(txname),
+        pagesize = jlps,
+        verbose = FALSE))
 
     # early exit
     if (file.size(txname) <= 2L) return(NULL)

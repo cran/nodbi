@@ -28,7 +28,7 @@
 #' document ID `_id`, otherwise a UUID is created as document ID `_id`.
 #' Only lowercase is accepted for container names (in parameter `key`).
 #' Opensearch can equally be used.
-#' For a benchmark, see <https://github.com/ropensci/nodbi#benchmark>
+#' For a benchmark, see <https://github.com/ropensci/nodbi#benchmark>.
 #'
 #' @return A `nodbi` source object
 #'
@@ -41,7 +41,7 @@ src_elastic <- function(host = "127.0.0.1", port = 9200, path = NULL,
                         force = FALSE, ...) {
 
   # check minimum version
-  pkgNeeded("elastic", "1.2.0")
+  pkgNeeded("elastic", "1.2.1")
 
   # create connection
   x <- elastic::connect(

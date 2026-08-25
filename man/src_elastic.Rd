@@ -49,7 +49,7 @@ Any root-level \verb{_id} is extracted from the document(s) and used as
 document ID \verb{_id}, otherwise a UUID is created as document ID \verb{_id}.
 Only lowercase is accepted for container names (in parameter \code{key}).
 Opensearch can equally be used.
-For a benchmark, see \url{https://github.com/ropensci/nodbi#benchmark}
+For a benchmark, see \url{https://github.com/ropensci/nodbi#benchmark}.
 }
 \examples{
 \dontrun{

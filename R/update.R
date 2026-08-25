@@ -8,9 +8,10 @@
 #'
 #' Uses native functions in MongoDB ([mongolite::mongo()]$update()),
 #' SQLite (`jsonb_update()`), DuckDB (`jsonb_merge_patch()`),
+#' MariaDB (`json_merge_patch()`),
 #' Elasticsearch (`elastic::docs_bulk_update()`);
 #' a `plpgsql` function added when calling `src_postgres()`,
-#' and a [jqr::jqr()] programme for CouchDB.
+#' and a [jqr::jq()] programme for CouchDB.
 #'
 #' @inheritParams docdb_create
 #'
@@ -148,7 +149,8 @@ docdb_update.src_couchdb <- function(src, key, value, query, ...) {
   #
   ndjson <- NULL
   jsonlite::stream_out(input, con = textConnection(
-    object = "ndjson", open = "w", local = TRUE), verbose = FALSE, digits = NA)
+    object = "ndjson", open = "w", local = TRUE),
+    pagesize = jlps, verbose = FALSE, digits = NA)
 
   # temporary file and connection
   tfname <- tempfile()
@@ -228,13 +230,22 @@ docdb_update.src_elastic <- function(src, key, value, query, ...) {
   # json to data frame
   if (any(class(value) == "character")) {
     if (isFile(value)) {
-      value <- jsonlite::stream_in(file(value), verbose = FALSE)
+      value <- jsonlite::stream_in(
+        file(value),
+        pagesize = jlps,
+        verbose = FALSE)
     } else {
       if (isUrl(value)) {
-        value <- jsonlite::stream_in(url(value), verbose = FALSE)
+        value <- jsonlite::stream_in(
+          url(value),
+          pagesize = jlps,
+          verbose = FALSE)
       } else {
         if (length(value) == 1L) value <- jsonlite::minify(value)
-        value <- jsonlite::stream_in(textConnection(value), verbose = FALSE)
+        value <- jsonlite::stream_in(
+          textConnection(value),
+          pagesize = jlps,
+          verbose = FALSE)
       }
     }
   }
@@ -504,6 +515,7 @@ docdb_update.src_sqlite <- function(src, key, value, query, ...) {
       statement = statement
     )
 
+    # early exit
     return(result)
   }
 
@@ -572,6 +584,7 @@ docdb_update.src_postgres <- function(src, key, value, query, ...) {
       statement = statement
     )
 
+    # early exit
     return(result)
 
   }
@@ -610,11 +623,136 @@ docdb_update.src_duckdb <- function(src, key, value, query, ...) {
       statement = statement
     )
 
+    # early exit
     return(result)
   }
 
   # see https://duckdb.org/docs/extensions/json#json-creation-functions
   updFunction <- "json_merge_patch"
+
+  return(sqlUpdate(src = src, key = key, value = value, query = query, updFunction = updFunction))
+
+}
+
+#' @export
+docdb_update.src_mariadb <- function(src, key, value, query, ...) {
+
+  # handle parameters
+  if (query == "") query <- "{}"
+  query <- jsonlite::minify(query)
+
+  # comments see create.R
+
+  # temporarily change SQL mode to handle newlines
+  DBI::dbExecute(src$con, "SET @@SQL_MODE = CONCAT(@@SQL_MODE, ',NO_BACKSLASH_ESCAPES');")
+  on.exit(try(DBI::dbExecute(
+    src$con, "SET @@SQL_MODE = REPLACE(@@SQL_MODE, ',NO_BACKSLASH_ESCAPES', '');"),
+    silent = TRUE), add = TRUE)
+
+  ## check features
+  if (isFile(value) &&
+      (query == "{}")) {
+
+    # file must be located on the server host
+    info <- attr(src$con, "host")
+    canLoadFile <- grepl("localhost|127[.]0[.]0[.]1", info)
+
+    # file must have full path name
+    value <- normalizePath(value)
+
+    # file must be smaller than max_allowed_packet
+    fileMax <- DBI::dbGetQuery(
+      conn = src$con,
+      statement = "SELECT @@GLOBAL.max_allowed_packet;")
+
+    # file path must be in secure_file_priv
+    filePath <- DBI::dbGetQuery(
+      conn = src$con,
+      statement = "SHOW VARIABLES LIKE 'secure_file_priv';")
+
+    # finalise
+    canLoadFile <- canLoadFile & ifelse(
+      file.size(value) <= fileMax[[1]], TRUE, FALSE) &
+      grepl(filePath$Value[1], value)
+
+    # inform user
+    if (!canLoadFile) {
+
+      message(
+      "Parameter 'value' specified a file, ",
+      "but the file cannot directly be loaded, ",
+      "converting it to data frame for loading.")
+
+      # readin ndjson records
+      value <- jsonlite::stream_in(
+        con = file(value),
+        pagesize = jlps,
+        verbose = FALSE
+      )
+
+    }
+
+  } else {
+
+    canLoadFile <- FALSE
+
+  }
+
+  ## file load method
+  if (canLoadFile) {
+
+    # import into temporary table
+    tblName <- uuid::UUIDgenerate()
+    try(DBI::dbRemoveTable(src$con, tblName), silent = TRUE)
+    on.exit(try(DBI::dbRemoveTable(src$con, tblName), silent = TRUE), add = TRUE)
+
+    # create table
+    DBI::dbExecute(
+      conn = src$con,
+      statement = paste0(
+        "CREATE TEMPORARY TABLE `", tblName, "`",
+        " (json JSON NOT NULL);"))
+
+    # load from ndjson file
+    DBI::dbExecute(
+      conn = src$con,
+      statement = paste0(
+        "LOAD DATA LOCAL INFILE '", value, "' ",
+        "INTO TABLE `", tblName, "` CHARACTER SET utf8 ",
+        "FIELDS TERMINATED BY '#$%' LINES TERMINATED BY '\n' ",
+        "(@ndjsonline) SET json = @ndjsonline;")
+    )
+
+    # reset SQL mode now
+    DBI::dbExecute(src$con, "SET @@SQL_MODE = REPLACE(@@SQL_MODE, ',NO_BACKSLASH_ESCAPES', '');")
+
+    # update main table
+    statement <- paste0(
+      'UPDATE `', key, '`
+      INNER JOIN (
+        SELECT
+          JSON_VALUE(json, \'$._id\') AS in_id,
+          JSON_REMOVE(json, \'$._id\') AS injson
+        FROM `', tblName, '`
+      ) AS ndjson
+      ON `', key, '`._id = ndjson.in_id
+      SET `', key, '` .json = JSON_MERGE_PATCH(`', key, '`.json, ndjson.injson);'
+    )
+
+    # do update
+    result <- DBI::dbExecute(
+      conn = src$con,
+      statement = statement
+    )
+
+    # early exit
+    return(result)
+
+  } # if canLoadFile
+
+  # SQL for patching, see
+  # https://mariadb.com/docs/server/reference/sql-functions/special-functions/json-functions/json_merge_patch
+  updFunction <- "JSON_MERGE_PATCH"
 
   return(sqlUpdate(src = src, key = key, value = value, query = query, updFunction = updFunction))
 
@@ -701,7 +839,12 @@ sqlUpdate <- function(src, key, value, query, updFunction) {
 
     # compose statement
     statement <- paste0(
-      'UPDATE "', key, '" SET json = ', updFunction, '(json,\'',
+      'UPDATE ', ifelse(
+        # special handing MariaDB
+        inherits(src, "src_mariadb"),
+        paste0('`', key, '`'),
+        paste0('"', key, '"')
+      ), ' SET json = ', updFunction, '(json,\'',
       value[i], '\') WHERE _id IN (\'', ids[i], '\');'
     )
 

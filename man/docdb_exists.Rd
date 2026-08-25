@@ -8,8 +8,8 @@ docdb_exists(src, key, ...)
 }
 \arguments{
 \item{src}{Source object, result of call to any of functions
-\code{\link[=src_mongo]{src_mongo()}}, \code{\link[=src_sqlite]{src_sqlite()}}, \code{\link[=src_elastic]{src_elastic()}}, \code{\link[=src_couchdb]{src_couchdb()}}
-\code{\link[=src_duckdb]{src_duckdb()}} or \code{\link[=src_postgres]{src_postgres()}}}
+\code{\link[=src_mongo]{src_mongo()}}, \code{\link[=src_sqlite]{src_sqlite()}}, \code{\link[=src_duckdb]{src_duckdb()}}, \code{\link[=src_postgres]{src_postgres()}},
+\code{\link[=src_mariadb]{src_mariadb()}}, \code{\link[=src_elastic]{src_elastic()}} or \code{\link[=src_couchdb]{src_couchdb()}}}
 
 \item{key}{(character) The name of the container in the
 database backend (corresponds to \code{collection} for MongoDB,
@@ -17,7 +17,7 @@ database backend (corresponds to \code{collection} for MongoDB,
 a table name for DuckDB, SQLite and PostgreSQL)}
 
 \item{...}{Passed to functions \code{\link[DBI:dbListTables]{DBI::dbListTables()}},
-\code{\link[elastic:indices]{elastic::index_exists()}}, and \code{\link[sofa:db_info]{sofa::db_info()}}}
+\code{\link[elastic:index_exists]{elastic::index_exists()}}, and \code{\link[sofa:db_info]{sofa::db_info()}}}
 }
 \value{
 (logical) \code{TRUE} or \code{FALSE} to indicate

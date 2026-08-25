@@ -8,8 +8,8 @@ docdb_query(src, key, query, ...)
 }
 \arguments{
 \item{src}{Source object, result of call to any of functions
-\code{\link[=src_mongo]{src_mongo()}}, \code{\link[=src_sqlite]{src_sqlite()}}, \code{\link[=src_elastic]{src_elastic()}}, \code{\link[=src_couchdb]{src_couchdb()}}
-\code{\link[=src_duckdb]{src_duckdb()}} or \code{\link[=src_postgres]{src_postgres()}}}
+\code{\link[=src_mongo]{src_mongo()}}, \code{\link[=src_sqlite]{src_sqlite()}}, \code{\link[=src_duckdb]{src_duckdb()}}, \code{\link[=src_postgres]{src_postgres()}},
+\code{\link[=src_mariadb]{src_mariadb()}}, \code{\link[=src_elastic]{src_elastic()}} or \code{\link[=src_couchdb]{src_couchdb()}}}
 
 \item{key}{(character) The name of the container in the
 database backend (corresponds to \code{collection} for MongoDB,
@@ -37,8 +37,8 @@ to be returned. If \code{NULL} or not set (default), 10,000 for
 Elasticsearch and all documents for MongoDB, SQLite,
 CouchDB, PostgreSQL, and DuckDB.
 \item Specify \code{listfields = TRUE} to return just the names of
-all fields, from all documents or from the maximum number of
-documents as specified in \code{limit}.
+all fields, from all documents corresponding to \code{query} or
+from the maximum number of documents as specified in \code{limit}.
 }}
 }
 \value{
@@ -50,7 +50,7 @@ in dot path notation.
 }
 \description{
 Complements the databases' native query and filtering functions
-by using \code{\link[jqr:jqr]{jqr::jqr()}}.
+by using \code{\link[jqr:jq]{jqr::jq()}}.
 If \code{query = "{}"} and neither \code{fields}
 nor \code{listfields} is specified, runs \code{\link[=docdb_get]{docdb_get()}}.
 }

@@ -17,6 +17,7 @@ if (FALSE) {
   src <- src_mongo(collection = key)
   src <- src_sqlite()
   src <- src_postgres()
+  src <- src_mariadb()
   src <- src_elastic()
   src <- src_couchdb(
     user = Sys.getenv("COUCHDB_TEST_USER"),
